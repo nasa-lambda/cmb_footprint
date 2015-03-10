@@ -6,63 +6,71 @@ import pyfits
 from astropy import wcs
 import scipy.sparse
 
-def plot_background(fn,fignum=None):
+class SurveyStack(object):
 
-	maps = H.read_map(fn,field=(1,2))
+	def __init__(self,background,xsize=800,nside=None,fignum=None):
+		self.xsize = xsize
+		self.fn_background = background
+		self.fig = pl.figure(fignum)
 
-	polamp = np.sqrt(maps[0]**2 + maps[1]**2)
+		maps = H.read_map(background,field=(1,2)) #Q,U should be fields 1 and 2. Background should be a Healpix map
 
-	map2d = project_healpix(polamp,coord=['G','C'])
+		if nside is None:
+			nside = H.npix2nside(len(maps[0]))
 
-	pl.figure(fignum)
-	pl.imshow(map2d,cmap=cm.Greys,vmin=0.0,vmax=0.001)
+		self.nside = nside
 
-	#pl.show()
+		polamp = np.sqrt(maps[0]**2 + maps[1]**2)
 
-def project_healpix(mapinp,coord=None):
+		map2d = project_healpix_mollview(polamp,coord=['G','C'])
+
+		vmax_val = 0.80*np.max(map2d)
+
+		pl.imshow(map2d,cmap=cm.Greys,vmin=0.0,vmax=0.001,origin='lower')
+
+
+	def superimpose(self,fns,color='red'):
+		'''Superimpose the footprint of an experiment on the background image. Can be a single fits file or a list of them that will 
+		be added together'''
+
+		#Determine type of map. Most likely flat sky map
+		if type(fns) is list:
+			fn0 = fns[0]			
+		else:
+			fn0 = fns
+			fns = [fns]
+
+		hdulist = pyfits.open(fn0)
+		hdulist.close()
+
+		hpx_map = np.zeros(H.nside2npix(self.nside))
+		for fn in fns:
+			hdulist = pyfits.open(fn)
+			hpx_map += wcs_to_healpix(hdulist,self.nside)
+			hdulist.close()
+
+		hpx_map_2d = project_healpix_mollview(hpx_map)
+		
+		hpx_map_2d[hpx_map_2d == 0] = np.NaN
+
+		if color == 'red':
+			color_val = 255.0
+		elif color == 'blue':
+			color_val = 0.0
+
+		hpx_map_2d[np.isfinite(hpx_map_2d)] = color_val
+
+		pl.figure(self.fig.number) #probably a better way to do this
+		pl.imshow(hpx_map_2d,alpha=0.5,origin='lower',vmin=0.0,vmax=255.0) #need to work on color. Possible just figure out values for the colormap
+
+def project_healpix_mollview(mapinp,coord=None):
+
+	#Change this to the minimal function calls needed to get the projection
 
 	map2d = H.mollview(mapinp,xsize=1600,coord=coord,return_projected_map=True)
 	pl.close()
 
 	return map2d
-
-def plot_ACT(fignum=None):
-	
-	#ACT data are stored in FITS files in WCS format. 
-
-	fn_148_south_s2 = 'maps/ACT/ACT_148_south_season_2_1way_hits_v3.fits'
-	fn_148_equ_s3 = 'maps/ACT/ACT_148_equ_season_3_1way_hits_v3.fits'
-	fn_148_south_s3 = 'maps/ACT/ACT_148_south_season_3_1way_hits_v3.fits'
-	fn_148_equ_s4 = 'maps/ACT/ACT_148_equ_season_4_1way_hits_v3.fits'
-	fn_148_south_s4 = 'maps/ACT/ACT_148_south_season_4_1way_hits_v3.fits'
-
-	fn_220_equ_s4 = 'maps/ACT/ACT_220_equ_season_4_1way_hits_v3.fits'
-	fn_220_south_s4 = 'maps/ACT/ACT_220_south_season_4_1way_hits_v3.fits'
-
-	fns = [fn_148_equ_s4,fn_148_south_s4,fn_148_equ_s3,fn_148_south_s3,fn_148_south_s2]
-
-	nside = 2048
-	npix = H.nside2npix(nside)
-
-	hpx_map = np.zeros(npix)
-	for fn in fns:
-		hdulist = pyfits.open(fn)
-		hpx_map += wcs_to_healpix(hdulist,nside)
-		hdulist.close()
-
-	hpx_148 = hpx_map
-
-	hpx_148_2d = project_healpix(hpx_148)
-
-	#This is so these points are not plotted. NaNs are ignored in imshow.
-	idx = np.where(hpx_148_2d == 0)
-	hpx_148_2d[idx] = np.NaN
-
-	pl.figure(fignum)
-	pl.imshow(hpx_148_2d,alpha=0.5)
-
-	#H.mollview(hpx_148_s4)
-	#pl.show()
 
 def wcs_to_healpix(hdulist,nside):
 	'''Converts data in an opened FITS file from a generic WCS to Healpix'''
@@ -93,7 +101,7 @@ def wcs_to_healpix(hdulist,nside):
 
 	#Use Healpy to do ang2pix for Healpix pixel numbers
 	theta = np.radians(world[:,0])
-	phi = np.radians(world[:,1]) #need to check sign of this
+	phi = -np.radians(world[:,1]) #CHECK SIGN
 	print "ang2pix"
 	pixnum = H.ang2pix(nside,theta,phi)
 	
@@ -111,9 +119,21 @@ def wcs_to_healpix(hdulist,nside):
 
 if __name__=='__main__':
 	
-	fn = 'maps/Planck/HFI_SkyMap_353_2048_R2.00_full.fits'
-	plot_background(fn,fignum=0)
+	fn_background = 'maps/Planck/HFI_SkyMap_353_2048_R2.00_full.fits'
+	
+	footprint = SurveyStack(fn_background,fignum=1)
+	
+	fn_148_south_s2 = 'maps/ACT/ACT_148_south_season_2_1way_hits_v3.fits'
+	fn_148_equ_s3 = 'maps/ACT/ACT_148_equ_season_3_1way_hits_v3.fits'
+	fn_148_south_s3 = 'maps/ACT/ACT_148_south_season_3_1way_hits_v3.fits'
+	fn_148_equ_s4 = 'maps/ACT/ACT_148_equ_season_4_1way_hits_v3.fits'
+	fn_148_south_s4 = 'maps/ACT/ACT_148_south_season_4_1way_hits_v3.fits'
 
-	plot_ACT(fignum=0)
+	fn_220_equ_s4 = 'maps/ACT/ACT_220_equ_season_4_1way_hits_v3.fits'
+	fn_220_south_s4 = 'maps/ACT/ACT_220_south_season_4_1way_hits_v3.fits'
+
+	fns_ACT = [fn_148_equ_s4,fn_148_south_s4,fn_148_equ_s3,fn_148_south_s3,fn_148_south_s2]
+
+	footprint.superimpose(fns_ACT,color='red')
 
 	pl.show()
