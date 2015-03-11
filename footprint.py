@@ -22,6 +22,7 @@ class SurveyStack(object):
 
 		polamp = np.sqrt(maps[0]**2 + maps[1]**2)
 
+		cm.Greys.set_under(alpha=0.0)
 		H.mollview(polamp,title='Experiment Footprints',xsize=1600,coord=['G','C'],fig=self.fig.number,cmap=cm.Greys,max=0.001,min=0.0,notext=True,cbar=None)
 		H.graticule(dpar=15.0,dmer=15.0,coord='C')
 
@@ -63,6 +64,7 @@ class SurveyStack(object):
 		#H.mollview(hpx_map,title='',xsize=1600,coord='C',fig=self.fig.number,min=0.0,max=255.0)
 		extent = (0.02,0.05,0.96,0.9)
 		cm.jet.set_bad(alpha=0.0) #so parts of the Nhits map that are NaN are completely transparent
+		cm.jet.set_under(alpha=0.0)
 		ax = H.projaxes.HpxMollweideAxes(self.fig,extent,coord='C',rot=None,format='%g',flipconv='astro')
 		map2d = ax.projmap(hpx_map,xsize=1600,coord='C',vmin=0.0,vmax=255.0,alpha=0.5,cmap=cm.jet)
 		self.fig.add_axes(ax)
