@@ -1,51 +1,53 @@
+# pylint: disable=E1101
+# pylint: disable=C0325
+
+'''This module provides utility functions needed for the footprint code.'''
+
 import numpy as np
 import healpy as H
 import astropy.wcs as wcs
-import scipy.sparse
+from scipy.sparse import coo_matrix
 
-def wcs_to_healpix(hdulist,nside):
-	'''Converts data in an opened FITS file from a generic WCS to Healpix'''
-	
-	#use wcs_pix2world to get ra/dec coordinates, then use ang2pix to get Healpix coordinates and 
-	#sum over all pixels with the same Healpix pixel numer
 
-	w = wcs.WCS(hdulist[0].header)
+def wcs_to_healpix(hdulist, nside):
+    '''Converts data in an opened FITS file from a generic WCS to Healpix'''
 
-	data = hdulist[0].data
+    wcs1 = wcs.WCS(hdulist[0].header)
 
-	xsize, ysize = data.shape
-	print("x/ysize = ", xsize, ysize)
+    data = hdulist[0].data
 
-	pixcrd = [(y,x) for x in xrange(xsize) for y in xrange(ysize)]
+    print("x/ysize = ", data.shape[0], data.shape[1])
 
-	print("np.array")
-	pixcrd2 = np.array(pixcrd)
+    pixcrd = [(y, x) for x in xrange(data.shape[0]) for y in
+              xrange(data.shape[1])]
 
-	#pix2world to get ra/dec values of each pixel
-	print("wcs_pix2world")
-	world = w.wcs_pix2world(pixcrd,1)
+#   pix2world to get ra/dec values of each pixel
+    print("wcs_pix2world")
+    world = wcs1.wcs_pix2world(pixcrd, 1)
 
-	#needed since for some reason I was getting NaNs for some ACT data. Probably because of my swapping of x and y
-	idx = np.isfinite(world[:,0])
+    print("np.array")
+    pixcrd = np.array(pixcrd)
 
-	pixcrd2 = pixcrd2[idx,:]
-	world = world[idx,:]
+#   needed since in some ACT data the length of the map is >360 degrees
+    idx = np.isfinite(world[:, 0])
 
-	#Use Healpy to do ang2pix for Healpix pixel numbers
-	theta = np.pi/2.0 - np.radians(world[:,1])
-	phi = np.radians(world[:,0]) #Sign seems to be correct based on looking at ACT hits map.
-	print("ang2pix")
-	pixnum = H.ang2pix(nside,theta,phi)
-	
+    pixcrd = pixcrd[idx, :]
+    world = world[idx, :]
 
-	print("hpx_data")
-	npix = H.nside2npix(nside)
-	row = pixnum
-	col = np.zeros_like(row)
+#   Use Healpy to do ang2pix for Healpix pixel numbers
+    theta = np.pi/2.0 - np.radians(world[:, 1])
+    phi = np.radians(world[:, 0])
+    print("ang2pix")
+    pixnum = H.ang2pix(nside, theta, phi)
 
-	#coo_matrix will sum entries that have multiple elements
-	hpx_data = scipy.sparse.coo_matrix((data[(pixcrd2[:,1],pixcrd2[:,0])], (row, col)), shape=np.array([npix,1])).A.transpose()
-	hpx_data.shape = (npix)
+    print("hpx_data")
+    npix = H.nside2npix(nside)
+    row = pixnum
+    col = np.zeros_like(row)
 
-	return hpx_data
+#   coo_matrix will sum entries that have multiple elements
+    hpx_data = coo_matrix((data[(pixcrd[:, 1], pixcrd[:, 0])], (row, col)),
+                          shape=np.array([npix, 1])).A.transpose()
+    hpx_data.shape = (npix)
 
+    return hpx_data
