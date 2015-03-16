@@ -2,9 +2,9 @@ import numpy as np
 import pylab as pl
 import healpy as H
 import matplotlib.cm as cm
-import pyfits
-from astropy import wcs
-import scipy.sparse
+from astropy.io import fits
+
+import util
 
 class SurveyStack(object):
 
@@ -27,12 +27,14 @@ class SurveyStack(object):
 		H.graticule(dpar=15.0,dmer=15.0,coord='C')
 
 	def read_hpx_maps(self,fns):
+		'''Read in one or more healpix maps and add them together. Must input an array of strings even if only 
+		inputting a single map'''
 		
 		hpx_map = np.zeros(H.nside2npix(self.nside))
 		for fn in fns:
 			tmp_map = H.read_map(fn)
 			nside = H.npix2nside(len(tmp_map))
-			hpx_map += H.udgrade(tmp_map,self.nside)
+			hpx_map += H.ud_grade(tmp_map,self.nside)
 	
 		return hpx_map
 
@@ -40,8 +42,8 @@ class SurveyStack(object):
 		
 		hpx_map = np.zeros(H.nside2npix(self.nside))
 		for fn in fns:
-			hdulist = pyfits.open(fn)
-			hpx_map += wcs_to_healpix(hdulist,self.nside)
+			hdulist = fits.open(fn)
+			hpx_map += util.wcs_to_healpix(hdulist,self.nside)
 			hdulist.close()
 
 		return hpx_map
@@ -87,18 +89,44 @@ class SurveyStack(object):
 		'''Superimpose the footprint of an experiment on the background image by giving input radec boundaries for the map. Boundaries are 
 		defined as the center and "radius" in ra/dec. Much easier to input than corners of the boundary'''
 
-		hpx_map = np.zeros(H.nside2npix(self.nside))
+		corner1 = (radec_cen[0]+radec_size[0],radec_cen[1]+radec_size[1])
+		corner2 = (radec_cen[0]+radec_size[0],radec_cen[1]-radec_size[1])
+		corner3 = (radec_cen[0]-radec_size[0],radec_cen[1]-radec_size[1])
+		corner4 = (radec_cen[0]-radec_size[0],radec_cen[1]+radec_size[1])
 
-		self.superimpose_hpxmap(hpx_map,color=color)
+		corners = (corner1,corner2,corner3,corner4)
+
+		self.superimpose_boundary_corners(corners,color=color)
 
 	def superimpose_boundary_corners(self,radec_corners,color='red'):
 		
+		radec_corners = np.array(radec_corners)
+
+		thetas = np.pi/2 - np.radians(radec_corners[:,1])
+		phis = np.radians(radec_corners[:,0])
+
+		vecs = H.ang2vec(thetas,phis)
+
+		ipix = H.query_polygon(self.nside,vecs)
+
 		hpx_map = np.zeros(H.nside2npix(self.nside))
+		hpx_map[ipix] = 1.0
 
 		self.superimpose_hpxmap(hpx_map,color=color)
 
+	def superimpose_experiment(self,experiment_name,color='red'):
+		'''Superimpose a specific experiment whose Healpix footprints we have pregenerated'''
+
+		if experiment_name == 'ACT':
+			fns = ['maps/ACT_148_equ_hits_hpx.fits','maps/ACT_148_south_hits_hpx.fits']
+		else:
+			print('We do not have Healpix maps for this experiment')
+
+		self.superimpose_fits(fns,color=color,maptype='HPX')
+
 def get_color_map(color):
-	'''Generate a LinearSegmentedColormap with a single color and varying transparency'''
+	'''Generate a LinearSegmentedColormap with a single color and varying transparency. Bad values and values below the 
+	lower limit are set to be completely transparent.'''
 
 	from matplotlib.colors import LinearSegmentedColormap
 	from matplotlib.colors import colorConverter
@@ -115,61 +143,14 @@ def get_color_map(color):
 					   (1,rgb[1],rgb[1])],
 			'blue':   [(0,rgb[2],rgb[2]),
 					   (1,rgb[2],rgb[2])],
-			'alpha':  [(0,0,0),
+			'alpha':  [(0,0.5,0.5),
 					   (1,1,1)]}
 
-	colormap1 = LinearSegmentedColormap('testcm',cdict)
+	colormap1 = LinearSegmentedColormap('FootprintCM',cdict)
 	colormap1.set_bad(alpha=0.0)
 	colormap1.set_under(alpha=0.0)
 
 	return colormap1
-
-
-def wcs_to_healpix(hdulist,nside):
-	'''Converts data in an opened FITS file from a generic WCS to Healpix'''
-	
-	#use wcs_pix2world to get ra/dec coordinates, then use ang2pix to get Healpix coordinates and 
-	#sum over all pixels with the same Healpix pixel numer
-
-	w = wcs.WCS(hdulist[0].header)
-
-	data = hdulist[0].data
-
-	xsize, ysize = data.shape
-	print "x/ysize = ", xsize, ysize
-
-	pixcrd = [(y,x) for x in xrange(xsize) for y in xrange(ysize)]
-
-	print "np.array"
-	pixcrd2 = np.array(pixcrd)
-
-	#pix2world to get ra/dec values of each pixel
-	print "wcs_pix2world"
-	world = w.wcs_pix2world(pixcrd,1)
-
-	#needed since for some reason I was getting NaNs for some ACT data. Probably because of my swapping of x and y
-	idx = np.isfinite(world[:,0])
-
-	pixcrd2 = pixcrd2[idx,:]
-	world = world[idx,:]
-
-	#Use Healpy to do ang2pix for Healpix pixel numbers
-	theta = np.pi/2.0 - np.radians(world[:,1])
-	phi = np.radians(world[:,0]) #CHECK SIGN
-	print "ang2pix"
-	pixnum = H.ang2pix(nside,theta,phi)
-	
-
-	print "hpx_data"
-	npix = H.nside2npix(nside)
-	row = pixnum
-	col = np.zeros_like(row)
-
-	#coo_matrix will sum entries that have multiple elements
-	hpx_data = scipy.sparse.coo_matrix((data[(pixcrd2[:,1],pixcrd2[:,0])], (row, col)), shape=np.array([npix,1])).A.transpose()
-	hpx_data.shape = (npix)
-
-	return hpx_data
 
 if __name__=='__main__':
 
@@ -189,7 +170,9 @@ if __name__=='__main__':
 	fns_ACT = [fn_148_equ_s4,fn_148_south_s4,fn_148_equ_s3,fn_148_south_s3,fn_148_south_s2]
 	#fns_ACT = [fn_148_equ_s4]
 
-	footprint.superimpose_fits(fns_ACT,color='red',maptype='WCS')
-	
+	#footprint.superimpose_fits(fns_ACT,color='red',maptype='WCS')
+	#footprint.superimpose_boundary_cen((0,0),(40,5),color='blue')
+	footprint.superimpose_experiment('ACT',color='red')
+
 	pl.show()
 
