@@ -10,7 +10,28 @@ from scipy.sparse import coo_matrix
 
 
 def wcs_to_healpix(hdulist, nside):
-    '''Converts data in an opened FITS file from a generic WCS to Healpix'''
+    '''Converts data in an opened FITS file from a generic WCS to Healpix.
+
+    Parameters
+    ----------
+    hdulist: hdu.hdulist.HDUList (astropy.io.fits or pyfits)
+        The opened FITS file that we can't to convert to Healpix.
+
+    nside: int
+        The nside of the output Healpix ma[
+
+    returns
+    -------
+    hpx_data: array-like
+        A Healpix map
+
+    Notes
+    -----
+    The steps for converting are to first find the ra/dec of ever pixel in
+    the flat sky WCS map. Convert these position to theta/phi on the sphere.
+    Then calculate the pixel number in the healpix map. Flat sky pixels with
+    the same Healpix pixel number are summed over.
+    '''
 
     wcs1 = wcs.WCS(hdulist[0].header)
 
@@ -42,11 +63,10 @@ def wcs_to_healpix(hdulist, nside):
 
     print("hpx_data")
     npix = H.nside2npix(nside)
-    row = pixnum
-    col = np.zeros_like(row)
 
 #   coo_matrix will sum entries that have multiple elements
-    hpx_data = coo_matrix((data[(pixcrd[:, 1], pixcrd[:, 0])], (row, col)),
+    hpx_data = coo_matrix((data[(pixcrd[:, 1], pixcrd[:, 0])],
+                           (pixnum, np.zeros_like(pixnum))),
                           shape=np.array([npix, 1])).A.transpose()
     hpx_data.shape = (npix)
 
