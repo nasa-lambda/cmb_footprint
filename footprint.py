@@ -1,8 +1,12 @@
 # pylint: disable=E1101
 # pylint: disable=C0325
 
-'''The purpose of this module is to allow us to plot footprints of different
-experiments upon an input background map.
+'''
+=============================================================
+footprint.py : Survey footprint related classes and functions
+=============================================================
+
+This module provides the class which we use to generate a survey footprint
 '''
 
 import numpy as np
@@ -20,10 +24,13 @@ class SurveyStack(object):
     the number of hits (more hits = less transparent).
     '''
 
-    def __init__(self, background, xsize=800, nside=None, fignum=None):
+    def __init__(self, background, xsize=800, nside=None, fignum=None,
+                 projection=H.mollview, coord_bg='G', coord_plot='C'):
         self.xsize = xsize
         self.fn_background = background
         self.fig = pl.figure(fignum)
+        self.projection = projection
+        self.coord_plot = coord_plot
 
 #       Q,U should be fields 1 and 2 for a normal Healpix map
         maps = H.read_map(background, field=(1, 2))
@@ -35,11 +42,14 @@ class SurveyStack(object):
 
         polamp = np.sqrt(maps[0]**2 + maps[1]**2)
 
+        coord = [coord_bg, coord_plot]
+
         cm.Greys.set_under(alpha=0.0)
-        H.mollview(polamp, title='Experiment Footprints', xsize=1600,
-                   coord=['G', 'C'], fig=self.fig.number, cmap=cm.Greys,
-                   max=0.001, min=0.0, notext=True, cbar=None, flip='astro')
-        H.graticule(dpar=15.0, dmer=15.0, coord='C')
+        self.projection(polamp, title='Experiment Footprints', xsize=1600,
+                        coord=coord, fig=self.fig.number, cmap=cm.Greys,
+                        max=0.001, min=0.0, notext=True, cbar=None,
+                        flip='astro')
+        H.graticule(dpar=30.0, dmer=30.0, coord='C')
 
     def read_hpx_maps(self, fns):
         '''Read in one or more healpix maps and add them together. Must input
@@ -47,7 +57,7 @@ class SurveyStack(object):
 
         Parameters
         ----------
-        fns: list of strings
+        fns : list of strings
             The filenames for the healpix maps to read in.
 
         Returns
@@ -67,12 +77,12 @@ class SurveyStack(object):
 
         Parameters
         ----------
-        fns: list of strings
+        fns : list of strings
             The filenames for the WCS maps to read in.
 
         Returns
         -------
-        hpx_map: array-like
+        hpx_map : array-like
             The WCS maps read in and converted to healpix format
         '''
 
@@ -84,15 +94,15 @@ class SurveyStack(object):
 
         return hpx_map
 
-    def superimpose_hpxmap(self, hpx_map, color='red'):
+    def superimpose_hpxmap(self, hpx_map, color='red', coord_in='C'):
         '''Superimpose a Healpix map on the background map.
 
         Parameters
         ----------
-        hpx_map: array-like
+        hpx_map : array-like
             The hpx_map to superimpose upon the background.
 
-        color: string or array-like with shape (3,)
+        color : string or array-like with shape (3,)
             The color to use when overlaying the survey footprint. Either a
             string or rgb triplet.
 
@@ -107,9 +117,11 @@ class SurveyStack(object):
 
         cm1 = get_color_map(color)
 
-        H.mollview(hpx_map, title='', xsize=1600, coord='C',
-                   fig=self.fig.number, cmap=cm1, notext=True, cbar=None,
-                   flip='astro')
+        coord = [coord_in, self.coord_plot]
+
+        self.projection(hpx_map, title='', xsize=1600, coord=coord,
+                        fig=self.fig.number, cmap=cm1, notext=True, cbar=None,
+                        flip='astro')
 
 #       This code is what is needed if you can't call mollview()
 #       extent = (0.02, 0.05, 0.96, 0.9)
@@ -120,21 +132,21 @@ class SurveyStack(object):
 #       ax.projmap(hpx_map, xsize=1600, coord='C', cmap=cm1)
 #       self.fig.add_axes(ax)
 
-    def superimpose_fits(self, fns, color='red', maptype='WCS'):
+    def superimpose_fits(self, fns, color='red', maptype='WCS', coord_in='C'):
         '''Superimpose the footprint of an experiment on the background image.
         Can be a single fits file or a list of them that will be added
         together.
 
         Parameters
         ----------
-        fns: list of strings
+        fns : list of strings
             The filenames for the maps to read in
 
-        color: string or array-like with shape (3,)
+        color : string or array-like with shape (3,)
             The color to use when overlaying the survey footprint. Either a
             string or rgb triplet.
 
-        maptype: string
+        maptype : string
             'WCS' or 'HPX' describing the type of map in the FITS file.
         '''
 
@@ -143,22 +155,23 @@ class SurveyStack(object):
         elif maptype == 'HPX':
             hpx_map = self.read_hpx_maps(fns)
 
-        self.superimpose_hpxmap(hpx_map, color=color)
+        self.superimpose_hpxmap(hpx_map, color=color, coord_in=coord_in)
 
-    def superimpose_boundary_cen(self, radec_cen, radec_size, color='red'):
+    def superimpose_boundary_cen(self, radec_cen, radec_size, color='red',
+                                 coord_in='C'):
         '''Superimpose the footprint of an experiment on the background image
         by giving input radec boundaries for the map. Boundaries are defined
         as the center and "radius" in ra/dec.
 
         Parameters
         ----------
-        radec_cen: array-like with shape (2,)
+        radec_cen : array-like with shape (2,)
             The center ra/dec of the survey (degrees)
 
-        radec_size: array-like with shape (2,)
+        radec_size : array-like with shape (2,)
             The "radius" of the survey in ra/dec (degrees)
 
-        color: string or array-like with shape (3,)
+        color : string or array-like with shape (3,)
             The color to use when overlaying the survey footprint. Either a
             string or rgb triplet.
         '''
@@ -170,19 +183,21 @@ class SurveyStack(object):
 
         corners = (corner1, corner2, corner3, corner4)
 
-        self.superimpose_boundary_corners(corners, color=color)
+        self.superimpose_boundary_corners(corners, color=color,
+                                          coord_in=coord_in)
 
-    def superimpose_boundary_corners(self, radec_corners, color='red'):
+    def superimpose_boundary_corners(self, radec_corners, color='red',
+                                     coord_in='C'):
         '''Superimpose the footprint of an experiment on the background image
         by giving the ra/dec corners of the image. The enclosed survey
         footprint is generated by calling healpy.query_polygon.
 
         Parameters
         ----------
-        radec_corners: array-like with shape (n,2)
+        radec_corners : array-like with shape (n,2)
             The n corners of the survey footprint in degrees.
 
-        color: string or array-like with shape (3,)
+        color : string or array-like with shape (3,)
             The color to use when overlaying the survey footprint. Either a
             string or rgb triplet.
         '''
@@ -199,18 +214,19 @@ class SurveyStack(object):
         hpx_map = np.zeros(H.nside2npix(self.nside))
         hpx_map[ipix] = 1.0
 
-        self.superimpose_hpxmap(hpx_map, color=color)
+        self.superimpose_hpxmap(hpx_map, color=color, coord_in=coord_in)
 
-    def superimpose_experiment(self, experiment_name, color='red'):
+    def superimpose_experiment(self, experiment_name, color='red',
+                               coord_in='C'):
         '''Superimpose a specific experiment whose Healpix footprints we have
         pregenerated.
 
         Parameters
         ----------
-        experiment_name: string
+        experiment_name : string
             Currently only 'ACT' is valid
 
-        color: string or array-like with shape (3,)
+        color : string or array-like with shape (3,)
             The color to use when overlaying the survey footprint. Either a
             string or rgb triplet.
         '''
@@ -218,10 +234,20 @@ class SurveyStack(object):
         if experiment_name == 'ACT':
             fns = ['maps/ACT_148_equ_hits_hpx.fits',
                    'maps/ACT_148_south_hits_hpx.fits']
+        elif experiment_name == 'SPT':
+            fns = ['maps/SPT_150_hits_hpx.fits']
         else:
             print('We do not have Healpix maps for this experiment')
 
-        self.superimpose_fits(fns, color=color, maptype='HPX')
+        self.superimpose_fits(fns, color=color, maptype='HPX',
+                              coord_in=coord_in)
+
+#       Annotation of plot. Put the name of each experiment next to its
+#       footprint.
+        if experiment_name == 'ACT':
+            H.projtext(0, 3.1, 'ACT', lonlat=True, fontsize=16, color=color)
+        elif experiment_name == 'SPT':
+            H.projtext(90, -47, 'SPT', lonlat=True, fontsize=16, color=color)
 
 
 def get_color_map(color):

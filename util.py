@@ -1,7 +1,17 @@
 # pylint: disable=E1101
 # pylint: disable=C0325
 
-'''This module provides utility functions needed for the footprint code.'''
+'''
+========================================================
+util.py : Utility routines for the survey footprint code
+========================================================
+
+This module provides utility functions that are needed for the survey
+footprint code, but are not unique to the survey footprint and might be
+needed elsewhere
+
+- :func:'wcs_to_healpix' converts a WCS fits file to a full sky Healpix map
+'''
 
 import numpy as np
 import healpy as H
