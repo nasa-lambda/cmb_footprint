@@ -2,7 +2,7 @@
 
 import argparse
 
-import pyfits
+from astropy.io import fits
 import healpy as H
 import numpy as np
 
@@ -20,7 +20,8 @@ if __name__=='__main__':
 
     hpx_map = np.zeros(H.nside2npix(args.nside))
     for fn in args.fn_in:
-        hdulist = pyfits.open(fn)
+        hdulist = fits.open(fn)
+        print hdulist
         hpx_map += util.wcs_to_healpix(hdulist,args.nside)
 
     H.write_map(args.fn_out,hpx_map)
