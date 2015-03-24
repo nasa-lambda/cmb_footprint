@@ -25,30 +25,37 @@ class SurveyStack(object):
     '''
 
     def __init__(self, background, xsize=800, nside=None, fignum=None,
-                 projection=H.mollview, coord_bg='G', coord_plot='C'):
+                 projection=H.mollview, coord_bg='G', coord_plot='C',
+                 rot=None, partialmap=False, latra=None, lonra=None):
         self.xsize = xsize
-        self.fn_background = background
         self.fig = pl.figure(fignum)
-        self.projection = projection
         self.coord_plot = coord_plot
-
-#       Q,U should be fields 1 and 2 for a normal Healpix map
-        maps = H.read_map(background, field=(1, 2))
+        self.partialmap = partialmap
+        self.latra = latra
+        self.lonra = lonra
+        self.rot = rot
+        self.mapview = projection
 
         if nside is None:
-            nside = H.npix2nside(len(maps[0]))
+            nside = H.npix2nside(len(background))
 
         self.nside = nside
-
-        polamp = np.sqrt(maps[0]**2 + maps[1]**2)
 
         coord = [coord_bg, coord_plot]
 
         cm.Greys.set_under(alpha=0.0)
-        self.projection(polamp, title='Experiment Footprints', xsize=1600,
-                        coord=coord, fig=self.fig.number, cmap=cm.Greys,
-                        max=0.001, min=0.0, notext=True, cbar=None,
-                        flip='astro')
+
+        title = 'Experiment Footprints'
+
+        if self.partialmap:
+            H.cartview(background, title=title, xsize=1600, coord=coord,
+                       fig=self.fig.number, cmap=cm.Greys, norm='log',
+                       notext=True, cbar=None, rot=rot, flip='astro',
+                       latra=latra, lonra=lonra)
+        else:
+            self.mapview(background, title=title, xsize=1600, coord=coord,
+                         fig=self.fig.number, cmap=cm.Greys, norm='log',
+                         notext=True, cbar=None, rot=rot, flip='astro')
         H.graticule(dpar=30.0, dmer=30.0, coord='C')
 
     def read_hpx_maps(self, fns):
@@ -119,9 +126,15 @@ class SurveyStack(object):
 
         coord = [coord_in, self.coord_plot]
 
-        self.projection(hpx_map, title='', xsize=1600, coord=coord,
-                        fig=self.fig.number, cmap=cm1, notext=True, cbar=None,
-                        flip='astro')
+        if self.partialmap:
+            H.cartview(hpx_map, title='', xsize=1600, coord=coord, cbar=None,
+                       fig=self.fig.number, cmap=cm1, notext=True,
+                       flip='astro', rot=self.rot, latra=self.latra,
+                       lonra=self.lonra)
+        else:
+            self.mapview(hpx_map, title='', xsize=1600, coord=coord,
+                         cbar=None, fig=self.fig.number, cmap=cm1,
+                         notext=True, flip='astro', rot=self.rot)
 
 #       This code is what is needed if you can't call mollview()
 #       extent = (0.02, 0.05, 0.96, 0.9)
@@ -245,9 +258,11 @@ class SurveyStack(object):
 #       Annotation of plot. Put the name of each experiment next to its
 #       footprint.
         if experiment_name == 'ACT':
-            H.projtext(0, 3.1, 'ACT', lonlat=True, fontsize=16, color=color)
+            H.projtext(0, 3.1, 'ACT', lonlat=True, fontsize=16, color=color,
+                       coord=coord_in)
         elif experiment_name == 'SPT':
-            H.projtext(90, -47, 'SPT', lonlat=True, fontsize=16, color=color)
+            H.projtext(90, -47, 'SPT', lonlat=True, fontsize=16, color=color,
+                       coord=coord_in)
 
 
 def get_color_map(color):
