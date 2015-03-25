@@ -35,6 +35,7 @@ class SurveyStack(object):
         self.lonra = lonra
         self.rot = rot
         self.mapview = projection
+        self.cbs = []
 
         if nside is None:
             nside = H.npix2nside(len(background))
@@ -101,7 +102,7 @@ class SurveyStack(object):
 
         return hpx_map
 
-    def superimpose_hpxmap(self, hpx_map, color='red', coord_in='C'):
+    def superimpose_hpxmap(self, hpx_map, label, color='red', coord_in='C'):
         '''Superimpose a Healpix map on the background map.
 
         Parameters
@@ -120,6 +121,7 @@ class SurveyStack(object):
         '''
 
         idx_nan = (hpx_map == 0)
+        hpx_map /= np.max(hpx_map)
         hpx_map[idx_nan] = np.NaN
 
         cm1 = get_color_map(color)
@@ -136,16 +138,25 @@ class SurveyStack(object):
                          cbar=None, fig=self.fig.number, cmap=cm1,
                          notext=True, flip='astro', rot=self.rot)
 
-#       This code is what is needed if you can't call mollview()
-#       extent = (0.02, 0.05, 0.96, 0.9)
+#       First add the new colorbar axis to the figure
+        im0 = self.fig.axes[-1].get_images()[0]
+        ax_color = pl.axes([len(self.cbs), 0.116667, 0.05, 0.05])
+        self.fig.colorbar(im0, cax=ax_color, orientation='horizontal',
+                          label=label, values=[1, 2])
 
-#       ax = H.projaxes.HpxMollweideAxes(self.fig, extent, coord='C',
-#                                        rot=None, format='%g',
-#                                        flipconv='astro')
-#       ax.projmap(hpx_map, xsize=1600, coord='C', cmap=cm1)
-#       self.fig.add_axes(ax)
+        self.cbs.append(ax_color)
 
-    def superimpose_fits(self, fns, color='red', maptype='WCS', coord_in='C'):
+#       Readjust the location of every colorbar
+        ncb = len(self.cbs)
+
+        left = 1.0 / (2.0*ncb) - 0.025
+        for ax_tmp in self.cbs:
+            if type(ax_tmp) == pl.Axes:
+                ax_tmp.set_position([left, 0.116667, 0.05, 0.05])
+                left += 1.0 / ncb
+
+    def superimpose_fits(self, fns, label, color='red', maptype='WCS',
+                         coord_in='C'):
         '''Superimpose the footprint of an experiment on the background image.
         Can be a single fits file or a list of them that will be added
         together.
@@ -168,10 +179,10 @@ class SurveyStack(object):
         elif maptype == 'HPX':
             hpx_map = self.read_hpx_maps(fns)
 
-        self.superimpose_hpxmap(hpx_map, color=color, coord_in=coord_in)
+        self.superimpose_hpxmap(hpx_map, label, color=color, coord_in=coord_in)
 
-    def superimpose_boundary_cen(self, radec_cen, radec_size, color='red',
-                                 coord_in='C'):
+    def superimpose_boundary_cen(self, radec_cen, radec_size, label,
+                                 color='red', coord_in='C'):
         '''Superimpose the footprint of an experiment on the background image
         by giving input radec boundaries for the map. Boundaries are defined
         as the center and "radius" in ra/dec.
@@ -196,10 +207,10 @@ class SurveyStack(object):
 
         corners = (corner1, corner2, corner3, corner4)
 
-        self.superimpose_boundary_corners(corners, color=color,
+        self.superimpose_boundary_corners(corners, label, color=color,
                                           coord_in=coord_in)
 
-    def superimpose_boundary_corners(self, radec_corners, color='red',
+    def superimpose_boundary_corners(self, radec_corners, label, color='red',
                                      coord_in='C'):
         '''Superimpose the footprint of an experiment on the background image
         by giving the ra/dec corners of the image. The enclosed survey
@@ -227,7 +238,8 @@ class SurveyStack(object):
         hpx_map = np.zeros(H.nside2npix(self.nside))
         hpx_map[ipix] = 1.0
 
-        self.superimpose_hpxmap(hpx_map, color=color, coord_in=coord_in)
+        self.superimpose_hpxmap(hpx_map, label, color=color,
+                                coord_in=coord_in)
 
     def superimpose_experiment(self, experiment_name, color='red',
                                coord_in='C'):
@@ -252,8 +264,8 @@ class SurveyStack(object):
         else:
             print('We do not have Healpix maps for this experiment')
 
-        self.superimpose_fits(fns, color=color, maptype='HPX',
-                              coord_in=coord_in)
+        self.superimpose_fits(fns, experiment_name, color=color,
+                              maptype='HPX', coord_in=coord_in)
 
 #       Annotation of plot. Put the name of each experiment next to its
 #       footprint.
