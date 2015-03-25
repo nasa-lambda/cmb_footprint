@@ -151,9 +151,8 @@ class SurveyStack(object):
 
         left = 1.0 / (2.0*ncb) - 0.025
         for ax_tmp in self.cbs:
-            if type(ax_tmp) == pl.Axes:
-                ax_tmp.set_position([left, 0.116667, 0.05, 0.05])
-                left += 1.0 / ncb
+            ax_tmp.set_position([left, 0.116667, 0.05, 0.05])
+            left += 1.0 / ncb
 
     def superimpose_fits(self, fns, label, color='red', maptype='WCS',
                          coord_in='C'):
