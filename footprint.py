@@ -51,8 +51,9 @@ class SurveyStack(object):
         if self.partialmap:
             H.cartview(background, title=title, xsize=1600, coord=coord,
                        fig=self.fig.number, cmap=cm.Greys, norm='log',
-                       notext=True, cbar=None, rot=rot, flip='astro',
+                       notext=True, rot=rot, flip='astro',
                        latra=latra, lonra=lonra)
+            self.fig.delaxes(self.fig.axes[-1])
         else:
             self.mapview(background, title=title, xsize=1600, coord=coord,
                          fig=self.fig.number, cmap=cm.Greys, norm='log',
@@ -129,10 +130,13 @@ class SurveyStack(object):
         coord = [coord_in, self.coord_plot]
 
         if self.partialmap:
-            H.cartview(hpx_map, title='', xsize=1600, coord=coord, cbar=None,
+#           Colorbar is added to this and then deleted to make sure there is
+#           room at the bottom of the map for the labels.
+            H.cartview(hpx_map, title='', xsize=1600, coord=coord,
                        fig=self.fig.number, cmap=cm1, notext=True,
                        flip='astro', rot=self.rot, latra=self.latra,
                        lonra=self.lonra)
+            self.fig.delaxes(self.fig.axes[-1])
         else:
             self.mapview(hpx_map, title='', xsize=1600, coord=coord,
                          cbar=None, fig=self.fig.number, cmap=cm1,
@@ -140,7 +144,8 @@ class SurveyStack(object):
 
 #       First add the new colorbar axis to the figure
         im0 = self.fig.axes[-1].get_images()[0]
-        ax_color = pl.axes([len(self.cbs), 0.116667, 0.05, 0.05])
+        box = self.fig.axes[0].get_position()
+        ax_color = pl.axes([len(self.cbs), box.y0-0.1, 0.05, 0.05])
         self.fig.colorbar(im0, cax=ax_color, orientation='horizontal',
                           label=label, values=[1, 2])
 
@@ -151,7 +156,7 @@ class SurveyStack(object):
 
         left = 1.0 / (2.0*ncb) - 0.025
         for ax_tmp in self.cbs:
-            ax_tmp.set_position([left, 0.116667, 0.05, 0.05])
+            ax_tmp.set_position([left, box.y0-0.1, 0.05, 0.05])
             left += 1.0 / ncb
 
     def superimpose_fits(self, fns, label, color='red', maptype='WCS',
@@ -265,16 +270,6 @@ class SurveyStack(object):
 
         self.superimpose_fits(fns, experiment_name, color=color,
                               maptype='HPX', coord_in=coord_in)
-
-#       Annotation of plot. Put the name of each experiment next to its
-#       footprint.
-        if experiment_name == 'ACT':
-            H.projtext(0, 3.1, 'ACT', lonlat=True, fontsize=16, color=color,
-                       coord=coord_in)
-        elif experiment_name == 'SPT':
-            H.projtext(90, -47, 'SPT', lonlat=True, fontsize=16, color=color,
-                       coord=coord_in)
-
 
 def get_color_map(color):
     '''Generate a LinearSegmentedColormap with a single color and varying
