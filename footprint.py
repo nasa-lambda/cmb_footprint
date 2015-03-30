@@ -46,7 +46,7 @@ class SurveyStack(object):
 
         cm.Greys.set_under(alpha=0.0)
 
-        title = 'Experiment Footprints'
+        title = 'Survey Footprints'
 
         if self.partialmap:
             H.cartview(background, title=title, xsize=1600, coord=coord,
