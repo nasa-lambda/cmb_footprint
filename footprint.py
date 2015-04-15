@@ -9,6 +9,8 @@ footprint.py : Survey footprint related classes and functions
 This module provides the class which we use to generate a survey footprint
 '''
 
+from __future__ import print_function
+
 import numpy as np
 import pylab as pl
 import healpy as H
@@ -160,7 +162,7 @@ class SurveyStack(object):
             box = self.fig.axes[0].get_position()
             ax_color = pl.axes([len(self.cbs), box.y0-0.1, 0.05, 0.05])
             self.fig.colorbar(im0, cax=ax_color, orientation='horizontal',
-                          label=label, values=[2, 3])
+                              label=label, values=[2, 3])
 
             self.cbs.append(ax_color)
 
