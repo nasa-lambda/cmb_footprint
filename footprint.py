@@ -11,6 +11,9 @@ This module provides the class which we use to generate a survey footprint
 
 from __future__ import print_function
 
+import ConfigParser
+import hashlib
+
 import numpy as np
 import pylab as pl
 import healpy as H
@@ -28,9 +31,10 @@ class SurveyStack(object):
     the number of hits (more hits = less transparent).
     '''
 
-    def __init__(self, background, xsize=800, nside=None, fignum=None,
+    def __init__(self, background, xsize=1600, nside=None, fignum=None,
                  projection=H.mollview, coord_bg='G', coord_plot='C',
-                 rot=None, partialmap=False, latra=None, lonra=None):
+                 rot=None, partialmap=False, latra=None, lonra=None,
+                 config='footprint.cfg', map_path='./maps/'):
         self.xsize = xsize
         self.fig = pl.figure(fignum)
         self.coord_plot = coord_plot
@@ -40,6 +44,13 @@ class SurveyStack(object):
         self.rot = rot
         self.mapview = projection
         self.cbs = []
+        self.config_fn = config
+        self.map_path = map_path
+            
+        self.config = ConfigParser.ConfigParser()
+        self.config.read(self.config_fn)
+
+        self.check_all()
 
         if nside is None:
             nside = H.npix2nside(len(background))
@@ -55,18 +66,80 @@ class SurveyStack(object):
         if self.partialmap:
             sub = (1, 1, 1)
             margins = (0.01, 0.025, 0.01, 0.03)
-            H.cartview(background, title=title, xsize=1600, coord=coord,
+            H.cartview(background, title=title, xsize=self.xsize, coord=coord,
                        fig=self.fig.number, cmap=cm.Greys, norm='log',
                        notext=True, rot=rot, flip='astro', min=1.0, max=5000,
                        latra=latra, lonra=lonra, sub=sub, margins=margins)
             self.fig.delaxes(self.fig.axes[-1])
         else:
-            self.mapview(background, title=title, xsize=1600, coord=coord,
-                         fig=self.fig.number, cmap=cm.Greys, norm='log',
-                         min=1.0, max=5000, notext=True, cbar=None, rot=rot,
-                         flip='astro')
+            self.mapview(background, title=title, xsize=self.xsize,
+                         coord=coord, fig=self.fig.number, cmap=cm.Greys,
+                         norm='log', min=1.0, max=5000, notext=True,
+                         cbar=None, rot=rot, flip='astro')
+
         H.graticule(dpar=30.0, dmer=30.0, coord='C')
 
+    def get_experiment(self,experiment_name):
+        '''Return the local paths to the files associated with an experiment.
+        If the files do not exists or their MD5 checksums do not match what is
+        stored in the configuration file, download new files.
+
+        Parameters
+        ----------
+        experiment_name : string
+            The experiment for which we want the filenames of the hitmaps
+
+        '''
+       
+        try:
+            fns = self.config.get(experiment_name,'file')
+            cksums = self.config.get(experiment_name,'checksum')
+        except:
+            raise ValueError("We do not have information for this experiment")
+
+        fns = fns.split(',')
+        cksums = cksums.split(',')
+        
+        fns_out = []
+#       Compare the checksum of the local file to the value in the configuration file. 
+#       If they don't match (or local file does not exist), download the file
+        for fn_tmp,cksum_cfg in zip(fns,cksums):
+            download_file = False
+            local_path = os.path.join(self.map_path, fn_tmp)
+            if os.path.exists(local_path):
+                cksum_file = hashlib.md5(open(local_path, 'rb').read()).hexdigest()
+                if cksum_cfg != cksum_file:
+                    download_file = True
+            else:
+                download_file = True
+
+            if download_file:
+                url_pre = 'http://lambda.gsfc.nasa.gov/data/footprint-maps'
+                url = os.path.join(url_pre, fn_tmp)
+                print("Downloading map for", experiment_name)
+                req = urllib2.urlopen(url)
+                file_chunk = 16 * 1024
+                with open(local_path, 'wb') as fp1:
+                    while True:
+                        chunk = req.read(file_chunk)
+                        if not chunk:
+                            break
+                        fp1.write(chunk)
+                
+                cksum_file = hashlib.md5(open(local_path, 'rb').read()).hexdigest()
+                if cksum_cfg != cksum_file:
+                    print("Remote file checksum does not match cfg checksum")
+
+            fns_out.append(local_path)
+
+        return fns_out
+
+    def check_all(self):
+        '''Check if we have all the correct hitmaps downloaded locally'''
+
+        for section in self.config.sections():
+            junk = self.get_experiment(section)
+ 
     def read_hpx_maps(self, fns):
         '''Read in one or more healpix maps and add them together. Must input
         an array of strings even if only inputting a single map.
@@ -270,54 +343,23 @@ class SurveyStack(object):
     def superimpose_experiment(self, experiment_name, color='red',
                                coord_in='C'):
         '''Superimpose a specific experiment whose Healpix footprints we have
-        pregenerated.
+        pregenerated and are listed in the configuration file
 
         Parameters
         ----------
         experiment_name : string
-            Currently only 'ACT' is valid
+            Name of experiment. Valid values are section names in the 
+            configuration file.
 
         color : string or array-like with shape (3,)
             The color to use when overlaying the survey footprint. Either a
             string or rgb triplet.
         '''
 
-        if experiment_name == 'ACT':
-            fns = ['maps/ACT_148_equ_hits_hpx.fits',
-                   'maps/ACT_148_south_hits_hpx.fits']
-        elif experiment_name == 'SPT':
-            fns = ['maps/SPT_150_hits_hpx.fits']
-        elif experiment_name == 'PB1':
-            fns = ['maps/PB1_S1_hpx.fits']
-            print("PB1 hit map is made from a center and ra/dec size")
-        elif experiment_name == 'BICEP2':
-            fns = ['maps/BICEP2_CMB_hpx.fits']
-            print("BICEP2 hit map is made from 16 vertices")
-        elif experiment_name == 'TESTDOWNLOAD':
-            fns = ['maps/test_download.fits']
-        else:
-            print('We do not have information for this experiment')
-
-#       If the file for the experiment we want to superimpose does not exist,
-#       download it from LAMBDA
-        for fn_tmp in fns:
-            if not os.path.exists(fn_tmp):
-                map_name = os.path.basename(fn_tmp)
-                url_pre = 'http://lambda.gsfc.nasa.gov/data/footprint-maps'
-                url = os.path.join(url_pre, map_name)
-                print("Downloading map for", experiment_name)
-                req = urllib2.urlopen(url)
-                file_chunk = 16 * 1024
-                with open(fn_tmp, 'wb') as fp1:
-                    while True:
-                        chunk = req.read(file_chunk)
-                        if not chunk:
-                            break
-                        fp1.write(chunk)
+        fns = self.get_experiment(experiment_name)
 
         self.superimpose_fits(fns, experiment_name, color=color,
                               maptype='HPX', coord_in=coord_in)
-
 
 def get_color_map(color):
     '''Generate a LinearSegmentedColormap with a single color and varying
