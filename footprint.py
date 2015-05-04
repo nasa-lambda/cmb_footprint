@@ -101,8 +101,10 @@ class SurveyStack(object):
         cksums = cksums.split(',')
         
         fns_out = []
-#       Compare the checksum of the local file to the value in the configuration file. 
-#       If they don't match (or local file does not exist), download the file
+#       Compare the checksum of the local file to the value in the
+#       configuration file. If they don't match (or local file does not
+#       exist), download the file. If the checksum of the downloaded file does
+#       not match the checksum in the configuration file something is wrong
         for fn_tmp,cksum_cfg in zip(fns,cksums):
             download_file = False
             local_path = os.path.join(self.map_path, fn_tmp)
@@ -306,6 +308,26 @@ class SurveyStack(object):
         if return_map:
             return map1
 
+    def superimpose_bound_circ(self, radec_cen, rad, label,
+                               color='red', coord_in='C', return_map=False):
+
+
+        theta = np.pi/2 - np.radians(radec_cen[1])
+        phi = np.radians(radec_cen[0])
+
+        vec = H.ang2vec(theta,phi)
+
+        ipix = H.query_disc(self.nside, vec, np.radians(rad))
+
+        hpx_map = np.zeros(H.nside2npix(self.nside))
+        hpx_map[ipix] = 1.0
+
+        self.superimpose_hpxmap(hpx_map, label, color=color,
+                                coord_in=coord_in)
+
+        if return_map:
+            return hpx_map
+
     def superimpose_bound_vtx(self, radec_corners, label, color='red',
                               coord_in='C', return_map=False):
         '''Superimpose the footprint of an experiment on the background image
@@ -341,7 +363,7 @@ class SurveyStack(object):
             return hpx_map
 
     def superimpose_experiment(self, experiment_name, color='red',
-                               coord_in='C'):
+                               coord_in='C', label=None):
         '''Superimpose a specific experiment whose Healpix footprints we have
         pregenerated and are listed in the configuration file
 
@@ -354,12 +376,22 @@ class SurveyStack(object):
         color : string or array-like with shape (3,)
             The color to use when overlaying the survey footprint. Either a
             string or rgb triplet.
+
+        coord_in : character
+            One of 'G', 'E', or 'C' to describe the coordinate system of the
+            map
+
+        label : string
+            The label for the experiment. If none, experiment_name is used
         '''
 
         fns = self.get_experiment(experiment_name)
 
-        self.superimpose_fits(fns, experiment_name, color=color,
-                              maptype='HPX', coord_in=coord_in)
+        if label is None:
+            label = experiment_name
+
+        self.superimpose_fits(fns, label, color=color, maptype='HPX',
+                              coord_in=coord_in)
 
 def get_color_map(color):
     '''Generate a LinearSegmentedColormap with a single color and varying
