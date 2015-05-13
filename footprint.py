@@ -34,7 +34,9 @@ class SurveyStack(object):
     def __init__(self, background, xsize=1600, nside=None, fignum=None,
                  projection=H.mollview, coord_bg='G', coord_plot='C',
                  rot=None, partialmap=False, latra=None, lonra=None,
-                 config='footprint.cfg', map_path='./maps/'):
+                 config='footprint.cfg', map_path='./maps/',
+                 download_config=False):
+
         self.xsize = xsize
         self.fig = pl.figure(fignum)
         self.coord_plot = coord_plot
@@ -47,6 +49,9 @@ class SurveyStack(object):
         self.config_fn = config
         self.map_path = map_path
             
+        if download_config:
+            self.get_config()
+
         self.config = ConfigParser.ConfigParser()
         self.config.read(self.config_fn)
 
@@ -78,6 +83,33 @@ class SurveyStack(object):
                          cbar=None, rot=rot, flip='astro')
 
         H.graticule(dpar=30.0, dmer=30.0, coord='C')
+
+    def get_config(self):
+        '''Download the configuration file from LAMBDA to the filename given
+        in self.config_fn in the local directory.
+        
+        Notes
+        -----
+        Remote file is footprint.txt instead of footprint.cfg because server
+        gives an error if you try to download a .cfg file whereas it allows
+        you to download a .txt file.
+        '''
+
+        url_pre = 'http://lambda.gsfc.nasa.gov/data/footprint-maps/'
+        
+        local_path = os.path.join('./', self.config_fn)
+        url = os.path.join(url_pre, 'footprint.txt')
+
+        print("Downloading configuration file")
+
+        file_chunk = 16 * 1024
+        req = urllib2.urlopen(url)
+        with open(local_path, 'wb') as fp1:
+            while True:
+                chunk = req.read(file_chunk)
+                if not chunk:
+                    break
+                fp1.write(chunk)
 
     def get_experiment(self,experiment_name):
         '''Return the local paths to the files associated with an experiment.
