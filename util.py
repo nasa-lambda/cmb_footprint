@@ -11,13 +11,16 @@ footprint code, but are not unique to the survey footprint and might be
 needed elsewhere
 
 - :func:'wcs_to_healpix' converts a WCS fits file to a full sky Healpix map
+- :func:'get_color_map' returns a color map that is a single color, but has
+    a varying alpha (going from 0.5 to 1)
+- :func:'bin_catalog' constructs a Healpix map with the map pixel value being
+    the number of sources in that pixel
 '''
 
 import numpy as np
 import healpy as H
 import astropy.wcs as wcs
 from scipy.sparse import coo_matrix
-
 
 def wcs_to_healpix(hdulist, nside):
     '''Converts data in an opened FITS file from a generic WCS to Healpix.
@@ -53,10 +56,8 @@ def wcs_to_healpix(hdulist, nside):
               xrange(data.shape[1])]
 
 #   pix2world to get ra/dec values of each pixel
-    print("wcs_pix2world")
     world = wcs1.wcs_pix2world(pixcrd, 1)
 
-    print("np.array")
     pixcrd = np.array(pixcrd)
 
 #   needed since in some ACT data the length of the map is >360 degrees
@@ -68,10 +69,8 @@ def wcs_to_healpix(hdulist, nside):
 #   Use Healpy to do ang2pix for Healpix pixel numbers
     theta = np.pi/2.0 - np.radians(world[:, 1])
     phi = np.radians(world[:, 0])
-    print("ang2pix")
     pixnum = H.ang2pix(nside, theta, phi)
 
-    print("hpx_data")
     npix = H.nside2npix(nside)
 
 #   coo_matrix will sum entries that have multiple elements
@@ -81,3 +80,79 @@ def wcs_to_healpix(hdulist, nside):
     hpx_data.shape = (npix)
 
     return hpx_data
+
+def get_color_map(color):
+    '''Generate a LinearSegmentedColormap with a single color and varying
+    transparency. Bad values and values below the lower limit are set to be
+    completely transparent.
+
+    Parameters
+    ----------
+    color: string or array-like with shape (3,)
+        The color to use when overlaying the survey footprint. Either a
+        string that can be input to colorConverter.to_rgb() or rgb triplet.
+
+    Returns
+    -------
+    colormap1: LinearSegmentedColormap
+        A color map that is a single color but varies its transparency
+        from 0.5 to 1. Bad values and values below the minimum are completely
+        transparent.
+    '''
+
+    from matplotlib.colors import LinearSegmentedColormap
+    from matplotlib.colors import colorConverter
+
+#   if the type is a string it is assumed to be an input to allow us
+#   to get an rgb value. If it is not a string and length is 3, it is
+#   assumed to be an actual rgb value
+    if isinstance(color, str):
+        rgb = colorConverter.to_rgb(color)
+    elif len(color) == 3:
+        rgb = color
+
+    cdict = {'red':   [(0, rgb[0], rgb[0]),
+                       (1, rgb[0], rgb[0])],
+             'green': [(0, rgb[1], rgb[1]),
+                       (1, rgb[1], rgb[1])],
+             'blue':  [(0, rgb[2], rgb[2]),
+                       (1, rgb[2], rgb[2])],
+             'alpha': [(0, 0.5, 0.5),
+                       (1, 1, 1)]}
+
+    colormap1 = LinearSegmentedColormap('FootprintCM', cdict)
+    colormap1.set_bad(alpha=0.0)
+    colormap1.set_under(alpha=0.0)
+
+    return colormap1
+
+def bin_catalog(ra_rad, dec_rad, redshift, nside, z_left, z_right):
+    npix = H.nside2npix(nside)
+    nnu = len(z_left)
+    # from Ra/dec to galactic
+    rotate = H.rotator.Rotator(coord=['C','C'])
+    theta_gal, phi_gal = rotate(dec_rad, ra_rad)
+
+    gal_ind = H.pixelfunc.ang2pix(nside, theta_gal, phi_gal, 
+                                       nest=False)
+
+    # spatial density
+    gal_spatial = np.bincount(gal_ind, minlength=npix)
+
+    # z binning
+    gal_ring = np.zeros(shape=(npix, nnu))
+    gal_counts = np.zeros_like(z_left)
+    for ind in range(nnu):
+        in_bin = np.logical_and(redshift > z_left[ind], redshift < z_right[ind])
+        gal_bin = gal_ind[in_bin]
+        gal_ring[:,ind] = np.bincount(gal_bin, minlength=npix)
+        gal_counts[ind] = len(gal_bin)
+
+    # make a separable selection function
+    nbar = gal_spatial[:, None] * gal_counts[None, :]
+    nbar *= np.sum(gal_counts) / np.sum(nbar)
+
+    overdensity = (gal_ring - nbar) / nbar
+
+    return overdensity, nbar, gal_counts, gal_spatial
+

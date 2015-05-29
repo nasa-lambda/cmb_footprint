@@ -21,6 +21,7 @@ import matplotlib.cm as cm
 from astropy.io import fits
 import urllib2
 import os
+import inspect
 
 import util
 
@@ -34,7 +35,7 @@ class SurveyStack(object):
     def __init__(self, background, xsize=1600, nside=None, fignum=None,
                  projection=H.mollview, coord_bg='G', coord_plot='C',
                  rot=None, partialmap=False, latra=None, lonra=None,
-                 config='footprint.cfg', map_path='./maps/',
+                 config='footprint.cfg', map_path='maps/',
                  download_config=False):
 
         self.xsize = xsize
@@ -46,8 +47,12 @@ class SurveyStack(object):
         self.rot = rot
         self.mapview = projection
         self.cbs = []
-        self.config_fn = config
-        self.map_path = map_path
+
+        full_path = inspect.getfile(inspect.currentframe())
+        abs_path,fn = os.path.split(full_path)
+
+        self.config_fn = os.path.join(abs_path,config)
+        self.map_path = os.path.join(abs_path,map_path)
             
         if download_config:
             self.get_config()
@@ -239,7 +244,7 @@ class SurveyStack(object):
         hpx_map /= np.max(hpx_map)
         hpx_map[idx_nan] = np.NaN
 
-        cm1 = get_color_map(color)
+        cm1 = util.get_color_map(color)
 
         coord = [coord_in, self.coord_plot]
 
@@ -425,47 +430,3 @@ class SurveyStack(object):
         self.superimpose_fits(fns, label, color=color, maptype='HPX',
                               coord_in=coord_in)
 
-def get_color_map(color):
-    '''Generate a LinearSegmentedColormap with a single color and varying
-    transparency. Bad values and values below the lower limit are set to be
-    completely transparent.
-
-    Parameters
-    ----------
-    color: string or array-like with shape (3,)
-        The color to use when overlaying the survey footprint. Either a
-        string that can be input to colorConverter.to_rgb() or rgb triplet.
-
-    Returns
-    -------
-    colormap1: LinearSegmentedColormap
-        A color map that is a single color but varies its transparency
-        from 0.5 to 1. Bad values and values below the minimum are completely
-        transparent.
-    '''
-
-    from matplotlib.colors import LinearSegmentedColormap
-    from matplotlib.colors import colorConverter
-
-#   if the type is a string it is assumed to be an input to allow us
-#   to get an rgb value. If it is not a string and length is 3, it is
-#   assumed to be an actual rgb value
-    if isinstance(color, str):
-        rgb = colorConverter.to_rgb(color)
-    elif len(color) == 3:
-        rgb = color
-
-    cdict = {'red':   [(0, rgb[0], rgb[0]),
-                       (1, rgb[0], rgb[0])],
-             'green': [(0, rgb[1], rgb[1]),
-                       (1, rgb[1], rgb[1])],
-             'blue':  [(0, rgb[2], rgb[2]),
-                       (1, rgb[2], rgb[2])],
-             'alpha': [(0, 0.5, 0.5),
-                       (1, 1, 1)]}
-
-    colormap1 = LinearSegmentedColormap('FootprintCM', cdict)
-    colormap1.set_bad(alpha=0.0)
-    colormap1.set_under(alpha=0.0)
-
-    return colormap1

@@ -5,36 +5,6 @@ import pylab as pl
 import healpy as H
 from astropy.io import fits
 
-def bin_catalog(ra_rad, dec_rad, redshift, nside, z_left, z_right):
-    npix = H.nside2npix(nside)
-    nnu = len(z_left)
-    # from Ra/dec to galactic
-    rotate = H.rotator.Rotator(coord=['C','C'])
-    theta_gal, phi_gal = rotate(dec_rad, ra_rad)
-
-    gal_ind = H.pixelfunc.ang2pix(nside, theta_gal, phi_gal, 
-                                       nest=False)
-
-    # spatial density
-    gal_spatial = np.bincount(gal_ind, minlength=npix)
-
-    # z binning
-    gal_ring = np.zeros(shape=(npix, nnu))
-    gal_counts = np.zeros_like(z_left)
-    for ind in range(nnu):
-        in_bin = np.logical_and(redshift > z_left[ind], redshift < z_right[ind])
-        gal_bin = gal_ind[in_bin]
-        gal_ring[:,ind] = np.bincount(gal_bin, minlength=npix)
-        gal_counts[ind] = len(gal_bin)
-
-    # make a separable selection function
-    nbar = gal_spatial[:, None] * gal_counts[None, :]
-    nbar *= np.sum(gal_counts) / np.sum(nbar)
-
-    overdensity = (gal_ring - nbar) / nbar
-
-    return overdensity, nbar, gal_counts, gal_spatial
-
 def load_qso(root_data):
     #qso_sample = root_data + 'BOSS/dr10/boss/qso/DR10Q/DR10Q_v2.fits'
     # http://data.sdss3.org/sas/dr12/boss/qso/DR12Q/
