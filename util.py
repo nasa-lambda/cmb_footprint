@@ -20,6 +20,7 @@ needed elsewhere
 import numpy as np
 import healpy as H
 import astropy.wcs as wcs
+from astropy.io import fits
 from scipy.sparse import coo_matrix
 
 def wcs_to_healpix(hdulist, nside):
@@ -155,4 +156,90 @@ def bin_catalog(ra_rad, dec_rad, redshift, nside, z_left, z_right):
     overdensity = (gal_ring - nbar) / nbar
 
     return overdensity, nbar, gal_counts, gal_spatial
+
+def gen_hpx_map_bound_cen(radec_cen, radec_size, nside):
+
+    corner1 = (radec_cen[0]+radec_size[0], radec_cen[1]+radec_size[1])
+    corner2 = (radec_cen[0]+radec_size[0], radec_cen[1]-radec_size[1])
+    corner3 = (radec_cen[0]-radec_size[0], radec_cen[1]-radec_size[1])
+    corner4 = (radec_cen[0]-radec_size[0], radec_cen[1]+radec_size[1])
+
+    corners = (corner1, corner2, corner3, corner4)
+    
+    hpx_map = gen_hpx_map_bound_vtx(corners, nside)
+
+    return hpx_map
+
+def gen_hpx_map_bound_vtx(radec_corners, nside):
+    
+    radec_corners = np.array(radec_corners)
+
+    thetas = np.pi/2 - np.radians(radec_corners[:, 1])
+    phis = np.radians(radec_corners[:, 0])
+
+    vecs = H.ang2vec(thetas, phis)
+
+    ipix = H.query_polygon(nside, vecs)
+
+    hpx_map = np.zeros(H.nside2npix(nside))
+    hpx_map[ipix] = 1.0
+
+    return hpx_map
+
+def gen_hpx_map_bound_circ(radec_cen, rad, nside):
+
+    theta = np.pi/2 - np.radians(radec_cen[1])
+    phi = np.radians(radec_cen[0])
+
+    vec = H.ang2vec(theta,phi)
+
+    ipix = H.query_disc(nside, vec, np.radians(rad))
+
+    hpx_map = np.zeros(H.nside2npix(nside))
+    hpx_map[ipix] = 1.0
+    
+    return hpx_map
+
+def read_hpx_maps(fns):
+    '''Read in one or more healpix maps and add them together. Must input
+    an array of strings even if only inputting a single map.
+
+    Parameters
+    ----------
+    fns : list of strings
+        The filenames for the healpix maps to read in.
+    
+    Returns
+    -------
+    hpx_map: array-like
+        A healpix map'''
+
+    hpx_map = np.zeros(H.nside2npix(self.nside))
+    for fn_tmp in fns:
+        tmp_map = H.read_map(fn_tmp)
+        hpx_map += H.ud_grade(tmp_map, self.nside)
+
+    return hpx_map
+
+def read_wcs_maps(self, fns, nside):
+    '''Read in WCS FITS files and convert them to a Healpix map.
+
+    Parameters
+    ----------
+    fns : list of strings
+        The filenames for the WCS maps to read in.
+
+    Returns
+    -------
+    hpx_map : array-like
+        The WCS maps read in and converted to healpix format
+    '''
+
+    hpx_map = np.zeros(H.nside2npix(nside))
+    for fn_tmp in fns:
+        hdulist = fits.open(fn_tmp)
+        hpx_map += util.wcs_to_healpix(hdulist, self.nside)
+        hdulist.close()
+
+    return hpx_map
 

@@ -15,7 +15,8 @@ if __name__ == '__main__':
 
     #fp = footprint.SurveyStack(background_map, fignum=1, projection=H.cartview, coord_plot='C', rot=[0,-32.5], 
     #        partialmap=True, latra=[-20,20], lonra=[-20,20])
-    fp = footprint.SurveyStack(background_map, fignum=1, projection=H.mollview, coord_plot='C', rot=[0,0]) 
+    fp = footprint.SurveyStack(background_map, fignum=1, projection=H.mollview, coord_plot='C', rot=[0,0],
+                               config='../footprint.cfg') 
 
     fp.superimpose_experiment('ACT',color='green')
     fp.superimpose_experiment('SPT',color='red')

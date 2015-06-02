@@ -11,19 +11,15 @@ This module provides the class which we use to generate a survey footprint
 
 from __future__ import print_function
 
-import ConfigParser
-import hashlib
-
 import numpy as np
 import pylab as pl
 import healpy as H
 import matplotlib.cm as cm
-from astropy.io import fits
-import urllib2
 import os
 import inspect
 
 import util
+from config_handler import ConfigHandler
 
 
 class SurveyStack(object):
@@ -35,7 +31,7 @@ class SurveyStack(object):
     def __init__(self, background, xsize=1600, nside=None, fignum=None,
                  projection=H.mollview, coord_bg='G', coord_plot='C',
                  rot=None, partialmap=False, latra=None, lonra=None,
-                 config='footprint.cfg', map_path='maps/',
+                 config='footprint.cfg', map_path=None,
                  download_config=False):
 
         self.xsize = xsize
@@ -48,19 +44,13 @@ class SurveyStack(object):
         self.mapview = projection
         self.cbs = []
 
-        full_path = inspect.getfile(inspect.currentframe())
-        abs_path,fn = os.path.split(full_path)
-
-        self.config_fn = os.path.join(abs_path,config)
-        self.map_path = os.path.join(abs_path,map_path)
-            
-        if download_config:
-            self.get_config()
-
-        self.config = ConfigParser.ConfigParser()
-        self.config.read(self.config_fn)
-
-        self.check_all()
+        if map_path is None:
+            full_path = inspect.getfile(inspect.currentframe())
+            abs_path,fn = os.path.split(full_path)
+            map_path = os.path.join(abs_path,'maps/')
+        
+        self.config = ConfigHandler(config, map_path, nside=nside,
+                                    download_config=download_config)
 
         if nside is None:
             nside = H.npix2nside(len(background))
@@ -88,140 +78,7 @@ class SurveyStack(object):
                          cbar=None, rot=rot, flip='astro')
 
         H.graticule(dpar=30.0, dmer=30.0, coord='C')
-
-    def get_config(self):
-        '''Download the configuration file from LAMBDA to the filename given
-        in self.config_fn in the local directory.
-        
-        Notes
-        -----
-        Remote file is footprint.txt instead of footprint.cfg because server
-        gives an error if you try to download a .cfg file whereas it allows
-        you to download a .txt file.
-        '''
-
-        url_pre = 'http://lambda.gsfc.nasa.gov/data/footprint-maps/'
-        
-        local_path = os.path.join('./', self.config_fn)
-        url = os.path.join(url_pre, 'footprint.txt')
-
-        print("Downloading configuration file")
-
-        file_chunk = 16 * 1024
-        req = urllib2.urlopen(url)
-        with open(local_path, 'wb') as fp1:
-            while True:
-                chunk = req.read(file_chunk)
-                if not chunk:
-                    break
-                fp1.write(chunk)
-
-    def get_experiment(self,experiment_name):
-        '''Return the local paths to the files associated with an experiment.
-        If the files do not exists or their MD5 checksums do not match what is
-        stored in the configuration file, download new files.
-
-        Parameters
-        ----------
-        experiment_name : string
-            The experiment for which we want the filenames of the hitmaps
-
-        '''
-       
-        try:
-            fns = self.config.get(experiment_name,'file')
-            cksums = self.config.get(experiment_name,'checksum')
-        except:
-            raise ValueError("We do not have information for this experiment")
-
-        fns = fns.split(',')
-        cksums = cksums.split(',')
-        
-        fns_out = []
-#       Compare the checksum of the local file to the value in the
-#       configuration file. If they don't match (or local file does not
-#       exist), download the file. If the checksum of the downloaded file does
-#       not match the checksum in the configuration file something is wrong
-        for fn_tmp,cksum_cfg in zip(fns,cksums):
-            download_file = False
-            local_path = os.path.join(self.map_path, fn_tmp)
-            if os.path.exists(local_path):
-                cksum_file = hashlib.md5(open(local_path, 'rb').read()).hexdigest()
-                if cksum_cfg != cksum_file:
-                    download_file = True
-            else:
-                download_file = True
-
-            if download_file:
-                url_pre = 'http://lambda.gsfc.nasa.gov/data/footprint-maps'
-                url = os.path.join(url_pre, fn_tmp)
-                print("Downloading map for", experiment_name)
-                req = urllib2.urlopen(url)
-                file_chunk = 16 * 1024
-                with open(local_path, 'wb') as fp1:
-                    while True:
-                        chunk = req.read(file_chunk)
-                        if not chunk:
-                            break
-                        fp1.write(chunk)
-                
-                cksum_file = hashlib.md5(open(local_path, 'rb').read()).hexdigest()
-                if cksum_cfg != cksum_file:
-                    print("Remote file checksum does not match cfg checksum")
-
-            fns_out.append(local_path)
-
-        return fns_out
-
-    def check_all(self):
-        '''Check if we have all the correct hitmaps downloaded locally'''
-
-        for section in self.config.sections():
-            junk = self.get_experiment(section)
- 
-    def read_hpx_maps(self, fns):
-        '''Read in one or more healpix maps and add them together. Must input
-        an array of strings even if only inputting a single map.
-
-        Parameters
-        ----------
-        fns : list of strings
-            The filenames for the healpix maps to read in.
-
-        Returns
-        -------
-        hpx_map: array-like
-            A healpix map'''
-
-        hpx_map = np.zeros(H.nside2npix(self.nside))
-        for fn_tmp in fns:
-            tmp_map = H.read_map(fn_tmp)
-            hpx_map += H.ud_grade(tmp_map, self.nside)
-
-        return hpx_map
-
-    def read_wcs_maps(self, fns):
-        '''Read in WCS FITS files and convert them to a Healpix map.
-
-        Parameters
-        ----------
-        fns : list of strings
-            The filenames for the WCS maps to read in.
-
-        Returns
-        -------
-        hpx_map : array-like
-            The WCS maps read in and converted to healpix format
-        '''
-
-        hpx_map = np.zeros(H.nside2npix(self.nside))
-        for fn_tmp in fns:
-            hdulist = fits.open(fn_tmp)
-            hpx_map += util.wcs_to_healpix(hdulist, self.nside)
-            hdulist.close()
-
-        return hpx_map
-
+  
     def superimpose_hpxmap(self, hpx_map, label, color='red', coord_in='C'):
         '''Superimpose a Healpix map on the background map.
 
@@ -306,14 +163,14 @@ class SurveyStack(object):
         '''
 
         if maptype == 'WCS':
-            hpx_map = self.read_wcs_maps(fns)
+            hpx_map = util.read_wcs_maps(fns)
         elif maptype == 'HPX':
-            hpx_map = self.read_hpx_maps(fns)
+            hpx_map = util.read_hpx_maps(fns)
 
         self.superimpose_hpxmap(hpx_map, label, color=color, coord_in=coord_in)
 
     def superimpose_bound_cen(self, radec_cen, radec_size, label,
-                              color='red', coord_in='C', return_map=False):
+                              color='red', coord_in='C'):
         '''Superimpose the footprint of an experiment on the background image
         by giving input radec boundaries for the map. Boundaries are defined
         as the center and "radius" in ra/dec.
@@ -331,42 +188,21 @@ class SurveyStack(object):
             string or rgb triplet.
         '''
 
-        corner1 = (radec_cen[0]+radec_size[0], radec_cen[1]+radec_size[1])
-        corner2 = (radec_cen[0]+radec_size[0], radec_cen[1]-radec_size[1])
-        corner3 = (radec_cen[0]-radec_size[0], radec_cen[1]-radec_size[1])
-        corner4 = (radec_cen[0]-radec_size[0], radec_cen[1]+radec_size[1])
-
-        corners = (corner1, corner2, corner3, corner4)
-
-        map1 = self.superimpose_bound_vtx(corners, label, color=color,
-                                          coord_in=coord_in,
-                                          return_map=return_map)
-
-        if return_map:
-            return map1
+        hpx_map = util.gen_hpx_map_bound_cen(radec_cen, radec_size, self.nside)
+        
+        self.superimpose_hpxmap(hpx_map, label, color=color,
+                                coord_in=coord_in)
 
     def superimpose_bound_circ(self, radec_cen, rad, label,
-                               color='red', coord_in='C', return_map=False):
+                               color='red', coord_in='C'):
 
-
-        theta = np.pi/2 - np.radians(radec_cen[1])
-        phi = np.radians(radec_cen[0])
-
-        vec = H.ang2vec(theta,phi)
-
-        ipix = H.query_disc(self.nside, vec, np.radians(rad))
-
-        hpx_map = np.zeros(H.nside2npix(self.nside))
-        hpx_map[ipix] = 1.0
+        hpx_map = util.gen_hpx_map_bound_circ(radec_cen, rad, self.nside)
 
         self.superimpose_hpxmap(hpx_map, label, color=color,
                                 coord_in=coord_in)
 
-        if return_map:
-            return hpx_map
-
     def superimpose_bound_vtx(self, radec_corners, label, color='red',
-                              coord_in='C', return_map=False):
+                              coord_in='C'):
         '''Superimpose the footprint of an experiment on the background image
         by giving the ra/dec corners of the image. The enclosed survey
         footprint is generated by calling healpy.query_polygon.
@@ -381,23 +217,10 @@ class SurveyStack(object):
             string or rgb triplet.
         '''
 
-        radec_corners = np.array(radec_corners)
-
-        thetas = np.pi/2 - np.radians(radec_corners[:, 1])
-        phis = np.radians(radec_corners[:, 0])
-
-        vecs = H.ang2vec(thetas, phis)
-
-        ipix = H.query_polygon(self.nside, vecs)
-
-        hpx_map = np.zeros(H.nside2npix(self.nside))
-        hpx_map[ipix] = 1.0
+        hpx_map = util.gen_hpx_map_bound_vtx(radec_corners, self.nside)
 
         self.superimpose_hpxmap(hpx_map, label, color=color,
                                 coord_in=coord_in)
-
-        if return_map:
-            return hpx_map
 
     def superimpose_experiment(self, experiment_name, color='red',
                                coord_in='C', label=None):
@@ -422,11 +245,11 @@ class SurveyStack(object):
             The label for the experiment. If none, experiment_name is used
         '''
 
-        fns = self.get_experiment(experiment_name)
+        hpx_map = self.config.load_experiment(experiment_name)
 
         if label is None:
             label = experiment_name
 
-        self.superimpose_fits(fns, label, color=color, maptype='HPX',
-                              coord_in=coord_in)
+        self.superimpose_hpxmap(hpx_map, label, color=color,
+                                coord_in=coord_in)
 
