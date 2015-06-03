@@ -188,7 +188,7 @@ class SurveyStack(object):
             string or rgb triplet.
         '''
 
-        hpx_map = util.gen_hpx_map_bound_cen(radec_cen, radec_size, self.nside)
+        hpx_map = util.gen_map_centersize(radec_cen, radec_size, self.nside)
         
         self.superimpose_hpxmap(hpx_map, label, color=color,
                                 coord_in=coord_in)
@@ -196,7 +196,7 @@ class SurveyStack(object):
     def superimpose_bound_circ(self, radec_cen, rad, label,
                                color='red', coord_in='C'):
 
-        hpx_map = util.gen_hpx_map_bound_disc(radec_cen, rad, self.nside)
+        hpx_map = util.gen_map_disc(radec_cen, rad, self.nside)
 
         self.superimpose_hpxmap(hpx_map, label, color=color,
                                 coord_in=coord_in)
@@ -217,7 +217,7 @@ class SurveyStack(object):
             string or rgb triplet.
         '''
 
-        hpx_map = util.gen_hpx_map_bound_polygon(radec_corners, self.nside)
+        hpx_map = util.gen_map_polygon(radec_corners, self.nside)
 
         self.superimpose_hpxmap(hpx_map, label, color=color,
                                 coord_in=coord_in)

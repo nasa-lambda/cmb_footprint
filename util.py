@@ -157,7 +157,7 @@ def bin_catalog(ra_rad, dec_rad, redshift, nside, z_left, z_right):
 
     return overdensity, nbar, gal_counts, gal_spatial
 
-def gen_hpx_map_bound_cen(radec_cen, radec_size, nside):
+def gen_map_centersize(radec_cen, radec_size, nside):
 
     corner1 = (radec_cen[0]+radec_size[0]/2.0, radec_cen[1]+radec_size[1]/2.0)
     corner2 = (radec_cen[0]+radec_size[0]/2.0, radec_cen[1]-radec_size[1]/2.0)
@@ -166,11 +166,11 @@ def gen_hpx_map_bound_cen(radec_cen, radec_size, nside):
 
     corners = (corner1, corner2, corner3, corner4)
     
-    hpx_map = gen_hpx_map_bound_polygon(corners, nside)
+    hpx_map = gen_map_polygon(corners, nside)
 
     return hpx_map
 
-def gen_hpx_map_bound_polygon(radec_corners, nside):
+def gen_map_polygon(radec_corners, nside):
     
     radec_corners = np.array(radec_corners)
 
@@ -186,7 +186,7 @@ def gen_hpx_map_bound_polygon(radec_corners, nside):
 
     return hpx_map
 
-def gen_hpx_map_bound_disc(radec_cen, rad, nside):
+def gen_map_disc(radec_cen, rad, nside):
 
     theta = np.pi/2 - np.radians(radec_cen[1])
     phi = np.radians(radec_cen[0])

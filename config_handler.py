@@ -60,6 +60,19 @@ class ConfigHandler(object):
                 junk = self.download_files(section)
         
     def load_experiment(self, experiment_name):
+        '''Load or generate the healpix map for an experiment defined in the
+        configuration file
+        
+        Parameters
+        ----------
+        experiment_name : string
+            An experiment defined in the configuration file
+
+        Returns
+        -------
+        hpx_map : array-like
+            Healpix map with the hitmap for the requested experiment
+        '''
 
         try:
             handler = self.config.get(experiment_name,'handler')
@@ -80,7 +93,13 @@ class ConfigHandler(object):
         Parameters
         ----------
         experiment_name : string
-            The experiment for which we want the filenames of the hitmaps
+            The experiment for which we want the filenames of the hitmaps. It
+            must be listed as 'hpx_file' in the configuration file
+
+        Returns
+        -------
+        fns_out : string
+            The local filenames
 
         '''
            
@@ -127,6 +146,20 @@ class ConfigHandler(object):
         return fns_out
 
     def get_hpx_file(self, experiment_name):
+        '''Load the healpix file associated with a given experiment. Must be
+        listed as 'hpx_file' in the configuration file.
+
+        Parameters
+        ----------
+        experiment_name : string
+            The experiment for which we want the hitmaps. It
+            must be listed as 'hpx_file' in the configuration file.
+
+        Returns
+        -------
+        hpx_map : array-like
+            The healpix map associated with the experiment
+        '''
         
         fns = self.download_files(experiment_name)
 
@@ -139,6 +172,28 @@ class ConfigHandler(object):
         return hpx_map
 
     def get_radec_polygon(self, experiment_name):
+        '''Generates a healpix map for a given experiment given vertices of
+        a polygon. Must be listed as 'radec_polygon' in the configuration
+        file.
+
+        Parameters
+        ----------
+        experiment_name : string
+            The experiment for which we want the hitmaps. It must be listed 
+            as 'radec_polygon' in the configuration file.
+
+        Returns
+        -------
+        hpx_map : array-like
+            The healpix map associated with the experiment
+
+        Notes
+        -----
+        The configuration file must contain 'vertex1', ..., 'vertexXX'
+        entries containing the ra,dec locations of each vertex. Nside of
+        the output map is the same as the nside specified in the
+        initialization of this class.
+        '''
 
         ras = []
         decs = []
@@ -158,11 +213,32 @@ class ConfigHandler(object):
   
         vtxs = np.transpose([ras,decs])
 
-        hpx_map = util.gen_hpx_map_bound_polygon(vtxs, self.nside)
+        hpx_map = util.gen_map_polygon(vtxs, self.nside)
 
         return hpx_map
 
     def get_radec_disc(self, experiment_name):
+        '''Generates a healpix map for a given experiment given a center point
+        and a disc radius. Must be listed as 'radec_disc' in the configuration
+        file.
+
+        Parameters
+        ----------
+        experiment_name : string
+            The experiment for which we want the hitmaps. It must be listed 
+            as 'radec_disc' in the configuration file.
+
+        Returns
+        -------
+        hpx_map : array-like
+            The healpix map associated with the experiment
+
+        Notes
+        -----
+        The configuration file must contain a 'radec_cen' and a 'radius'
+        entry. The nside of the output map is the same as the nside specified
+        in the initializaiton of this class.
+        '''
 
         radec_cen = self.config.get(experiment_name, 'radec_cen').split(',')
         radec_cen = SkyCoord(radec_cen[0], radec_cen[1])
@@ -174,11 +250,33 @@ class ConfigHandler(object):
         tmp = SkyCoord('0d',radius)
         radius = np.abs(tmp.dec.deg)
 
-        hpx_map = util.gen_hpx_map_bound_disc(radec_cen, radius, self.nside)
+        hpx_map = util.gen_map_disc(radec_cen, radius, self.nside)
 
         return hpx_map
 
-    def get_radec_range(self, experiment_name):
+    def get_radec_rect(self, experiment_name):
+        '''Generates a healpix map for a given experiment given a center point
+        and edge length of the rectanlge. Must be listed as 'radec_rect' in
+        the configuration file.
+
+        Parameters
+        ----------
+        experiment_name : string
+            The experiment for which we want the hitmaps. It must be listed 
+            as 'radec_rect' in the configuration file.
+
+        Returns
+        -------
+        hpx_map : array-like
+            The healpix map associated with the experiment
+
+        Notes
+        -----
+        The configuration file must contain a 'radec_cen' and a 'radec_size'
+        entry. The 'radec_size' entry must contain the ra,dec length of the
+        edge of the rectangle. The nside of the output map is the same as the
+        nside specified in the initialization of this class.
+        '''
 
         radec_cen = self.config.get(experiment_name, 'radec_cen').split(',')
         radec_cen = SkyCoord(radec_cen[0], radec_cen[1])
@@ -189,11 +287,32 @@ class ConfigHandler(object):
         radec_len = SkyCoord(radec_len[0], radec_len[1])
         radec_len = [radec_len.ra.deg, radec_len.dec.deg]
 
-        hpx_map = util.gen_hpx_map_bound_cen(radec_cen, radec_len, self.nside)
+        hpx_map = util.gen_map_centersize(radec_cen, radec_len, self.nside)
 
         return hpx_map
 
     def get_combination(self, experiment_name):
+        '''Generates a healpix map for a given experiment that is a
+        combination of multiple other experiments in the configuration
+        file.
+
+        Parameters
+        ----------
+        experiment_name : string
+            The experiment for which we want the hitmaps. It must be listed 
+            as 'combination' in the configuration file.
+        
+        Returns
+        -------
+        hpx_map : array-like
+            The healpix map associated with the experiment
+
+        Notes
+        -----
+        The configuration file must contain a 'components' entry which lists
+        the different configuration file entries, separated by a ',' that make
+        up this experiment
+        '''
 
         components = self.config.get(experiment_name, 'components').split(',')
 

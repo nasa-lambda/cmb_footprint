@@ -14,7 +14,7 @@ if __name__ == '__main__':
     background_map = np.sqrt(data[0]**2 + data[1]**2)
 
     #fp = footprint.SurveyStack(background_map, fignum=1, projection=H.cartview, coord_plot='C', rot=[0,-32.5], 
-    #        partialmap=True, latra=[-20,20], lonra=[-20,20])
+    #        partialmap=True, latra=[-20,20], lonra=[-20,20], config='../footprint.cfg')
     fp = footprint.SurveyStack(background_map, fignum=1, projection=H.mollview, coord_plot='C', rot=[0,0],
                                config='../footprint.cfg') 
 
@@ -22,5 +22,6 @@ if __name__ == '__main__':
     fp.superimpose_experiment('SPT',color='red')
     fp.superimpose_experiment('POLARBEAR',color='magenta')
     fp.superimpose_experiment('BICEP2',color='blue')
+    fp.superimpose_experiment('QUIET',color='orange')
  
     pl.show()
