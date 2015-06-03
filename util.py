@@ -170,7 +170,7 @@ def gen_hpx_map_bound_cen(radec_cen, radec_size, nside):
 
     return hpx_map
 
-def gen_hpx_map_bound_vtx(radec_corners, nside):
+def gen_hpx_map_bound_polygon(radec_corners, nside):
     
     radec_corners = np.array(radec_corners)
 
@@ -186,7 +186,7 @@ def gen_hpx_map_bound_vtx(radec_corners, nside):
 
     return hpx_map
 
-def gen_hpx_map_bound_circ(radec_cen, rad, nside):
+def gen_hpx_map_bound_disc(radec_cen, rad, nside):
 
     theta = np.pi/2 - np.radians(radec_cen[1])
     phi = np.radians(radec_cen[0])
@@ -214,10 +214,11 @@ def read_hpx_maps(fns):
     hpx_map: array-like
         A healpix map'''
 
-    hpx_map = np.zeros(H.nside2npix(self.nside))
-    for fn_tmp in fns:
+    hpx_map = H.read_map(fns[0])
+    nside = H.npix2nside(len(hpx_map))
+    for fn_tmp in fns[1:]:
         tmp_map = H.read_map(fn_tmp)
-        hpx_map += H.ud_grade(tmp_map, self.nside)
+        hpx_map += H.ud_grade(tmp_map, nside)
 
     return hpx_map
 

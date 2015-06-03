@@ -49,11 +49,11 @@ class SurveyStack(object):
             abs_path,fn = os.path.split(full_path)
             map_path = os.path.join(abs_path,'maps/')
         
-        self.config = ConfigHandler(config, map_path, nside=nside,
-                                    download_config=download_config)
-
         if nside is None:
             nside = H.npix2nside(len(background))
+        
+        self.config = ConfigHandler(config, map_path, nside=nside,
+                                    download_config=download_config)
 
         self.nside = nside
 
@@ -196,7 +196,7 @@ class SurveyStack(object):
     def superimpose_bound_circ(self, radec_cen, rad, label,
                                color='red', coord_in='C'):
 
-        hpx_map = util.gen_hpx_map_bound_circ(radec_cen, rad, self.nside)
+        hpx_map = util.gen_hpx_map_bound_disc(radec_cen, rad, self.nside)
 
         self.superimpose_hpxmap(hpx_map, label, color=color,
                                 coord_in=coord_in)
@@ -217,7 +217,7 @@ class SurveyStack(object):
             string or rgb triplet.
         '''
 
-        hpx_map = util.gen_hpx_map_bound_vtx(radec_corners, self.nside)
+        hpx_map = util.gen_hpx_map_bound_polygon(radec_corners, self.nside)
 
         self.superimpose_hpxmap(hpx_map, label, color=color,
                                 coord_in=coord_in)

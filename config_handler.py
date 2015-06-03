@@ -4,6 +4,7 @@ import os
 import hashlib
 
 import healpy as H
+import numpy as np
 
 import util
 
@@ -68,8 +69,12 @@ class ConfigHandler(object):
             hpx_map = self.get_hpx_file(experiment_name)
         elif handler == 'radec_range':
             hpx_map = self.get_radec_range(experiment_name)
-        elif handler == 'radec_circle':
-            hpx_map = self.get_radec_circle(experiment_name)
+        elif handler == 'radec_disc':
+            hpx_map = self.get_radec_disc(experiment_name)
+        elif handler == 'radec_polygon':
+            hpx_map = self.get_radec_polygon(experiment_name)
+        elif handler == 'combination':
+            hpx_map = self.get_combination(experiment_name)
 
         return hpx_map
 
@@ -138,6 +143,53 @@ class ConfigHandler(object):
             hpx_map += H.ud_grade(tmp_map, nside)
 
         return hpx_map
-    
-    def get_radec_range(self):
-        pass
+
+    def get_radec_polygon(self, experiment_name):
+
+        ras = []
+        decs = []
+
+        i = 1
+        while 1:
+            radec_point = 'vertex'+str(i)
+            print "AAA: ", radec_point
+            try:
+                radec_val = self.config.get(experiment_name, radec_point)
+                radec_val = radec_val.split(',')
+                ras.append(float(radec_val[0]))
+                decs.append(float(radec_val[1]))
+            except:
+                break
+            i += 1
+  
+        print ras
+        print decs
+        vtxs = np.transpose([ras,decs])
+
+        hpx_map = util.gen_hpx_map_bound_polygon(vtxs, self.nside)
+
+        return hpx_map
+
+    def get_radec_disc(self, experiment_name):
+
+        radec_cen = self.config.get(experiment_name, 'radec_cen')
+        radec_cen = radec_cen.split(',')
+        radec_cen = (float(radec_cen[0]),float(radec_cen[1]))
+
+        radius = float(self.config.get(experiment_name, 'radius'))
+
+        hpx_map = util.gen_hpx_map_bound_disc(radec_cen, radius, self.nside)
+
+        return hpx_map
+
+    def get_combination(self, experiment_name):
+
+        sub_names = self.config.get(experiment_name, 'sub_experiments')
+
+        sub_names = sub_names.split(',')
+
+        hpx_map = self.load_experiment(sub_names[0])
+        for sub_name in sub_names[1:]:
+            hpx_map += self.load_experiment(sub_name)
+
+        return hpx_map
