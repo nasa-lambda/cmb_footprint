@@ -130,17 +130,17 @@ def get_color_map(color):
 def bin_catalog(ra_rad, dec_rad, redshift, nside, z_left, z_right):
     npix = H.nside2npix(nside)
     nnu = len(z_left)
-    # from Ra/dec to galactic
+#   from Ra/dec to galactic
     rotate = H.rotator.Rotator(coord=['C','C'])
     theta_gal, phi_gal = rotate(dec_rad, ra_rad)
 
     gal_ind = H.pixelfunc.ang2pix(nside, theta_gal, phi_gal, 
                                        nest=False)
 
-    # spatial density
+#   spatial density
     gal_spatial = np.bincount(gal_ind, minlength=npix)
 
-    # z binning
+#   z binning
     gal_ring = np.zeros(shape=(npix, nnu))
     gal_counts = np.zeros_like(z_left)
     for ind in range(nnu):
@@ -149,7 +149,7 @@ def bin_catalog(ra_rad, dec_rad, redshift, nside, z_left, z_right):
         gal_ring[:,ind] = np.bincount(gal_bin, minlength=npix)
         gal_counts[ind] = len(gal_bin)
 
-    # make a separable selection function
+#   make a separable selection function
     nbar = gal_spatial[:, None] * gal_counts[None, :]
     nbar *= np.sum(gal_counts) / np.sum(nbar)
 
@@ -159,14 +159,14 @@ def bin_catalog(ra_rad, dec_rad, redshift, nside, z_left, z_right):
 
 def gen_hpx_map_bound_cen(radec_cen, radec_size, nside):
 
-    corner1 = (radec_cen[0]+radec_size[0], radec_cen[1]+radec_size[1])
-    corner2 = (radec_cen[0]+radec_size[0], radec_cen[1]-radec_size[1])
-    corner3 = (radec_cen[0]-radec_size[0], radec_cen[1]-radec_size[1])
-    corner4 = (radec_cen[0]-radec_size[0], radec_cen[1]+radec_size[1])
+    corner1 = (radec_cen[0]+radec_size[0]/2.0, radec_cen[1]+radec_size[1]/2.0)
+    corner2 = (radec_cen[0]+radec_size[0]/2.0, radec_cen[1]-radec_size[1]/2.0)
+    corner3 = (radec_cen[0]-radec_size[0]/2.0, radec_cen[1]-radec_size[1]/2.0)
+    corner4 = (radec_cen[0]-radec_size[0]/2.0, radec_cen[1]+radec_size[1]/2.0)
 
     corners = (corner1, corner2, corner3, corner4)
     
-    hpx_map = gen_hpx_map_bound_vtx(corners, nside)
+    hpx_map = gen_hpx_map_bound_polygon(corners, nside)
 
     return hpx_map
 

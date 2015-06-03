@@ -5,6 +5,7 @@ import hashlib
 
 import healpy as H
 import numpy as np
+from astropy.coordinates import SkyCoord
 
 import util
 
@@ -65,16 +66,9 @@ class ConfigHandler(object):
         except:
             raise ValueError("We do not have information for this experiment")
 
-        if handler == 'hpx_file':
-            hpx_map = self.get_hpx_file(experiment_name)
-        elif handler == 'radec_range':
-            hpx_map = self.get_radec_range(experiment_name)
-        elif handler == 'radec_disc':
-            hpx_map = self.get_radec_disc(experiment_name)
-        elif handler == 'radec_polygon':
-            hpx_map = self.get_radec_polygon(experiment_name)
-        elif handler == 'combination':
-            hpx_map = self.get_combination(experiment_name)
+        
+        func = getattr(self,'get_'+handler)
+        hpx_map = func(experiment_name)
 
         return hpx_map
 
@@ -155,8 +149,9 @@ class ConfigHandler(object):
             try:
                 radec_val = self.config.get(experiment_name, radec_point)
                 radec_val = radec_val.split(',')
-                ras.append(float(radec_val[0]))
-                decs.append(float(radec_val[1]))
+                radec_val = SkyCoord(radec_val[0], radec_val[1])
+                ras.append(radec_val.ra.deg)
+                decs.append(radec_val.dec.deg)
             except:
                 break
             i += 1
@@ -169,21 +164,38 @@ class ConfigHandler(object):
 
     def get_radec_disc(self, experiment_name):
 
-        radec_cen = self.config.get(experiment_name, 'radec_cen')
-        radec_cen = radec_cen.split(',')
-        radec_cen = (float(radec_cen[0]),float(radec_cen[1]))
+        radec_cen = self.config.get(experiment_name, 'radec_cen').split(',')
+        radec_cen = SkyCoord(radec_cen[0], radec_cen[1])
+        radec_cen = [radec_cen.ra.deg, radec_cen.dec.deg]
 
-        radius = float(self.config.get(experiment_name, 'radius'))
+#       This calculation is so that radius can be input in different
+#       coordinates (i.e. deg, arcminutes, etc.)
+        radius = self.config.get(experiment_name, 'radius')
+        tmp = SkyCoord('0d',radius)
+        radius = np.abs(tmp.dec.deg)
 
         hpx_map = util.gen_hpx_map_bound_disc(radec_cen, radius, self.nside)
 
         return hpx_map
 
+    def get_radec_range(self, experiment_name):
+
+        radec_cen = self.config.get(experiment_name, 'radec_cen').split(',')
+        radec_cen = SkyCoord(radec_cen[0], radec_cen[1])
+        radec_cen = [radec_cen.ra.deg, radec_cen.dec.deg]
+        
+#       edge length. The corners of the box are center +- length/2.0
+        radec_len = self.config.get(experiment_name, 'radec_size').split(',')
+        radec_len = SkyCoord(radec_len[0], radec_len[1])
+        radec_len = [radec_len.ra.deg, radec_len.dec.deg]
+
+        hpx_map = util.gen_hpx_map_bound_cen(radec_cen, radec_len, self.nside)
+
+        return hpx_map
+
     def get_combination(self, experiment_name):
 
-        components = self.config.get(experiment_name, 'components')
-
-        components = components.split(',')
+        components = self.config.get(experiment_name, 'components').split(',')
 
         hpx_map = self.load_experiment(components[0])
         for component in components[1:]:
