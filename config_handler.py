@@ -152,7 +152,6 @@ class ConfigHandler(object):
         i = 1
         while 1:
             radec_point = 'vertex'+str(i)
-            print "AAA: ", radec_point
             try:
                 radec_val = self.config.get(experiment_name, radec_point)
                 radec_val = radec_val.split(',')
@@ -162,8 +161,6 @@ class ConfigHandler(object):
                 break
             i += 1
   
-        print ras
-        print decs
         vtxs = np.transpose([ras,decs])
 
         hpx_map = util.gen_hpx_map_bound_polygon(vtxs, self.nside)
@@ -184,12 +181,12 @@ class ConfigHandler(object):
 
     def get_combination(self, experiment_name):
 
-        sub_names = self.config.get(experiment_name, 'sub_experiments')
+        components = self.config.get(experiment_name, 'components')
 
-        sub_names = sub_names.split(',')
+        components = components.split(',')
 
-        hpx_map = self.load_experiment(sub_names[0])
-        for sub_name in sub_names[1:]:
-            hpx_map += self.load_experiment(sub_name)
+        hpx_map = self.load_experiment(components[0])
+        for component in components[1:]:
+            hpx_map += self.load_experiment(component)
 
         return hpx_map
