@@ -1,5 +1,24 @@
-import ConfigParser
-import urllib2
+# pylint: disable=E1101
+# pylint: disable=C0325
+
+'''
+====================================================================
+config_handler.py : Configuration file related classes and functions
+====================================================================
+                    
+This module provides the class that interprets the configuration file and
+generates or reads in healpix maps corresponding to the survey footprints
+of each experiment
+'''
+
+# For differing imports between Python2 and Python3
+try:
+    import ConfigParser
+    from urllib2 import urlopen
+except:
+    import configparser as ConfigParser
+    from urllib.request import urlopen
+
 import os
 import hashlib
 
@@ -7,7 +26,7 @@ import healpy as H
 import numpy as np
 from astropy.coordinates import SkyCoord
 
-import util
+import cmb_footprint.util as util
 
 class ConfigHandler(object):
     def __init__(self, config_fn, map_path, nside=256, download_config=False):
@@ -41,7 +60,7 @@ class ConfigHandler(object):
         print("Downloading configuration file")
 
         file_chunk = 16 * 1024
-        req = urllib2.urlopen(url)
+        req = urlopen(url)
         with open(local_path, 'wb') as fp1:
             while True:
                 chunk = req.read(file_chunk)
@@ -128,7 +147,7 @@ class ConfigHandler(object):
                 url_pre = 'http://lambda.gsfc.nasa.gov/data/footprint-maps'
                 url = os.path.join(url_pre, fn_tmp)
                 print("Downloading map for", experiment_name)
-                req = urllib2.urlopen(url)
+                req = urlopen(url)
                 file_chunk = 16 * 1024
                 with open(local_path, 'wb') as fp1:
                     while True:

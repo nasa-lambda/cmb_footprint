@@ -15,6 +15,19 @@ needed elsewhere
     a varying alpha (going from 0.5 to 1)
 - :func:'bin_catalog' constructs a Healpix map with the map pixel value being
     the number of sources in that pixel
+- :func:'gen_map_centersize' constructs a Healpix map where any pixel inside 
+    the rectangle defined by the center point and edge size is 1 and any
+    point outside is 0
+- :func:'gen_map_polygon' constructs a Healpix map where any pixel inside 
+    the polygon defined by the input vertices is 1 and any point outside is 0
+- :func:'gen_map_disc' constructs a Healpix map where any pixel inside the
+    disc defined by the input center point and disc radius is 1 and any point
+    outside is 0.
+- :func:'read_healpix_maps' reads in multiple Healpix maps, ensures there are
+    of the same nside by upgrading or downgrading the maps, and sums them
+    together.
+- :func:'read_wcs_maps' reads in WCS fits files, converts the stored image
+    to a Healpix format, and sums the different maps together.
 '''
 
 import numpy as np
@@ -128,6 +141,42 @@ def get_color_map(color):
     return colormap1
 
 def bin_catalog(ra_rad, dec_rad, redshift, nside, z_left, z_right):
+    '''Takes a catalog of ra,dec values for sources and generates a Healpix
+    map with the pixel value corresponding to the number of sources located
+    inside that pixel.
+
+    Parameters
+    ----------
+    ra_rad : array-like
+        The ra value in radians for each source
+
+    dec_rad : array-like
+        The dec value in radians for each source
+
+    redshift : array-like
+        The redshift for each source
+
+    nside : int
+        The nside of the output Healpix map
+
+    z_left : float
+        The smallest redshift for the sources added to the Healpix map
+
+    z_right : float
+        The largest redshift for the sources added to the Healpix map
+
+    Returns
+    -------
+    overdensity : array-like
+
+    nbar : array-like
+
+    gal_counts : array-like
+
+    gal_spatial : array-like
+
+    '''
+
     npix = H.nside2npix(nside)
     nnu = len(z_left)
 #   from Ra/dec to galactic
@@ -158,6 +207,25 @@ def bin_catalog(ra_rad, dec_rad, redshift, nside, z_left, z_right):
     return overdensity, nbar, gal_counts, gal_spatial
 
 def gen_map_centersize(radec_cen, radec_size, nside):
+    '''Generates a Healpix map with the only non-zero values defined by pixels
+    inside the input rectangle.
+
+    Parameters
+    ----------
+    radec_cen : array-like with shape (2,)
+        The center ra,dec in degrees of the rectangle
+
+    radec_size : array-like with shape (2,)
+        The length of the edge in ra,dec space of the rectangle in degrees
+
+    nside : int
+        The nside of the output Healpix map
+
+    Returns
+    -------
+    hpx_map : array-like
+        A Healpix map with non-zero values inside the rectangle
+    '''
 
     corner1 = (radec_cen[0]+radec_size[0]/2.0, radec_cen[1]+radec_size[1]/2.0)
     corner2 = (radec_cen[0]+radec_size[0]/2.0, radec_cen[1]-radec_size[1]/2.0)
@@ -171,6 +239,22 @@ def gen_map_centersize(radec_cen, radec_size, nside):
     return hpx_map
 
 def gen_map_polygon(radec_corners, nside):
+    '''Generates a Healpix map with the only non-zero values in the pixels
+    inside the input polygon
+
+    Parameters
+    ----------
+    radec_corners : array-like with shape (n,2)
+        The ra,dec corners of the polygon in degrees
+
+    nside : int
+        The nside of the output Healpix map
+   
+    Returns
+    -------
+    hpx_map : array-like
+        A Healpix map with non-zero values inside the polygon
+    '''
     
     radec_corners = np.array(radec_corners)
 
@@ -187,6 +271,25 @@ def gen_map_polygon(radec_corners, nside):
     return hpx_map
 
 def gen_map_disc(radec_cen, rad, nside):
+    '''Generates a Healpix map with the only non-zero values in the
+    pixels inside the input disc.
+
+    Parameters
+    ----------
+    radec_cen : array-like with shape (2,)
+        The center ra,dec of the disc in degrees
+
+    rad : float
+        The radius of the disc in degrees
+
+    nside : int
+        The nside of the output Healpix map
+   
+    Returns
+    -------
+    hpx_map : array-like
+        A Healpix map with non-zero values inside the disc
+    '''
 
     theta = np.pi/2 - np.radians(radec_cen[1])
     phi = np.radians(radec_cen[0])
@@ -212,7 +315,14 @@ def read_hpx_maps(fns):
     Returns
     -------
     hpx_map: array-like
-        A healpix map'''
+        A healpix map that is the sum of the Healpix maps in the input files.
+
+    Notes
+    -----
+    The nside of the output map will be the nside of the file map in the list.
+    Every other map will be upgraded or downgraded that that nside value.
+        
+    '''
 
     hpx_map = H.read_map(fns[0])
     nside = H.npix2nside(len(hpx_map))
@@ -230,6 +340,9 @@ def read_wcs_maps(self, fns, nside):
     fns : list of strings
         The filenames for the WCS maps to read in.
 
+    nside : int
+        The nside of the output map.
+
     Returns
     -------
     hpx_map : array-like
@@ -239,7 +352,7 @@ def read_wcs_maps(self, fns, nside):
     hpx_map = np.zeros(H.nside2npix(nside))
     for fn_tmp in fns:
         hdulist = fits.open(fn_tmp)
-        hpx_map += util.wcs_to_healpix(hdulist, self.nside)
+        hpx_map += wcs_to_healpix(hdulist, self.nside)
         hdulist.close()
 
     return hpx_map

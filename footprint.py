@@ -11,15 +11,16 @@ This module provides the class which we use to generate a survey footprint
 
 from __future__ import print_function
 
+import os
+import inspect
+
 import numpy as np
 import pylab as pl
 import healpy as H
 import matplotlib.cm as cm
-import os
-import inspect
 
-import util
-from config_handler import ConfigHandler
+import cmb_footprint.util as util
+from cmb_footprint.config_handler import ConfigHandler
 
 
 class SurveyStack(object):
