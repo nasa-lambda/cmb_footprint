@@ -332,7 +332,7 @@ def read_hpx_maps(fns):
 
     return hpx_map
 
-def read_wcs_maps(self, fns, nside):
+def read_wcs_maps(fns, nside):
     '''Read in WCS FITS files and convert them to a Healpix map.
 
     Parameters

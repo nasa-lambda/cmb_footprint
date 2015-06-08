@@ -47,19 +47,19 @@ class SurveyStack(object):
 
         if map_path is None:
             full_path = inspect.getfile(inspect.currentframe())
-            abs_path,fn = os.path.split(full_path)
-            map_path = os.path.join(abs_path,'maps/')
-        
+            abs_path = os.path.split(full_path)[0]
+            map_path = os.path.join(abs_path, 'maps/')
+
         self.config = ConfigHandler(config, map_path, nside=nside,
                                     download_config=download_config)
-       
+
 #       Could also just call load_experiment which will call get_background
-        if type(background) == str:
+        if isinstance(background, str):
             background = self.config.get_background(background)
 
         if nside is None:
             nside = H.npix2nside(len(background))
-        
+
         self.nside = nside
 
         coord = [coord_bg, coord_plot]
@@ -83,7 +83,7 @@ class SurveyStack(object):
                          cbar=None, rot=rot, flip='astro')
 
         H.graticule(dpar=30.0, dmer=30.0, coord='C')
-  
+
     def superimpose_hpxmap(self, hpx_map, label, color='red', coord_in='C'):
         '''Superimpose a Healpix map on the background map.
 
@@ -165,10 +165,13 @@ class SurveyStack(object):
 
         maptype : string
             'WCS' or 'HPX' describing the type of map in the FITS file.
+
+        coord_in : 'C', G', or 'E'
+            Coordinate system of the FITS map
         '''
 
         if maptype == 'WCS':
-            hpx_map = util.read_wcs_maps(fns)
+            hpx_map = util.read_wcs_maps(fns, 256)
         elif maptype == 'HPX':
             hpx_map = util.read_hpx_maps(fns)
 
@@ -186,20 +189,48 @@ class SurveyStack(object):
             The center ra/dec of the survey (degrees)
 
         radec_size : array-like with shape (2,)
-            The "radius" of the survey in ra/dec (degrees)
+            The length of the edge of the rectangle in degrees
+        
+        label : string
+            The label to put on the colorbar for this experiment
 
         color : string or array-like with shape (3,)
             The color to use when overlaying the survey footprint. Either a
             string or rgb triplet.
+
+        coord_in : 'C', 'G', or 'E'
+            The coordinate system of the input parameters. 'C' would mean
+            input values are in ra,dec.
         '''
 
         hpx_map = util.gen_map_centersize(radec_cen, radec_size, self.nside)
-        
+
         self.superimpose_hpxmap(hpx_map, label, color=color,
                                 coord_in=coord_in)
 
     def superimpose_bound_circ(self, radec_cen, rad, label,
                                color='red', coord_in='C'):
+        '''Superimpose the footprint of an experiment on the background image
+        by giving an input center ra/dec and a radius of a disc.
+
+        Parameters
+        ----------
+        radec_cen : array-like with shape (2,)
+            The center ra/dec of the survey (degrees)
+
+        rad : float
+            The radius of the disc
+
+        label : string
+            The label to put on the colorbar for this experiment
+
+        color : string or array-like with shape (3,)
+            The color for the experiment. Either a string recognized by
+            matplotlib or a rgb triplet.
+
+        coord_in : 'C', 'E', or 'G'
+            The coordinate system of the input values
+        '''
 
         hpx_map = util.gen_map_disc(radec_cen, rad, self.nside)
 
@@ -235,7 +266,7 @@ class SurveyStack(object):
         Parameters
         ----------
         experiment_name : string
-            Name of experiment. Valid values are section names in the 
+            Name of experiment. Valid values are section names in the
             configuration file.
 
         color : string or array-like with shape (3,)
