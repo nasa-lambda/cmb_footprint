@@ -50,12 +50,16 @@ class SurveyStack(object):
             abs_path,fn = os.path.split(full_path)
             map_path = os.path.join(abs_path,'maps/')
         
+        self.config = ConfigHandler(config, map_path, nside=nside,
+                                    download_config=download_config)
+       
+#       Could also just call load_experiment which will call get_background
+        if type(background) == str:
+            background = self.config.get_background(background)
+
         if nside is None:
             nside = H.npix2nside(len(background))
         
-        self.config = ConfigHandler(config, map_path, nside=nside,
-                                    download_config=download_config)
-
         self.nside = nside
 
         coord = [coord_bg, coord_plot]

@@ -30,9 +30,13 @@ import cmb_footprint.util as util
 
 class ConfigHandler(object):
     def __init__(self, config_fn, map_path, nside=256, download_config=False):
-        self.nside = nside
         self.config_fn = config_fn
         self.map_path = map_path
+        
+        if nside is None:
+            nside  = 256
+
+        self.nside = nside
 
         if download_config:
             self.get_config()
@@ -122,8 +126,8 @@ class ConfigHandler(object):
 
         '''
            
-        fns = self.config.get(experiment_name,'file')
-        cksums = self.config.get(experiment_name,'checksum')
+        fns = self.config.get(experiment_name, 'file')
+        cksums = self.config.get(experiment_name, 'checksum')
 
         fns = fns.split(',')
         cksums = cksums.split(',')
@@ -147,22 +151,71 @@ class ConfigHandler(object):
                 url_pre = 'http://lambda.gsfc.nasa.gov/data/footprint-maps'
                 url = os.path.join(url_pre, fn_tmp)
                 print("Downloading map for", experiment_name)
-                req = urlopen(url)
-                file_chunk = 16 * 1024
-                with open(local_path, 'wb') as fp1:
-                    while True:
-                        chunk = req.read(file_chunk)
-                        if not chunk:
-                            break
-                        fp1.write(chunk)
-                
-                cksum_file = hashlib.md5(open(local_path, 'rb').read()).hexdigest()
-                if cksum_cfg != cksum_file:
-                    print("Remote file checksum does not match cfg checksum")
+
+                if not self.download_url(url, cksum_cfg, local_path):
+                    raise ValueError('Could not download file')
 
             fns_out.append(local_path)
 
         return fns_out
+
+    def download_url(self, url, checksum, local_path):
+
+        req = urlopen(url)
+        file_chunk = 16 * 1024
+        with open(local_path, 'wb') as fp1:
+            while True:
+                chunk = req.read(file_chunk)
+                if not chunk:
+                    break
+                fp1.write(chunk)
+
+        cksum_file = hashlib.md5(open(local_path, 'rb').read()).hexdigest()
+        if checksum != cksum_file:
+            print("Remote file checksum does not match cfg checksum")
+
+        return True
+
+    def get_background(self, name):
+        '''Download and process the given background'''
+
+        url = self.config.get(name, 'url')
+        checksum = self.config.get(name, 'checksum')
+
+        fields = self.config.get(name, 'fields').split(',')
+        fields_i = []
+        for field in fields:
+            fields_i.append(int(field))
+        nfields = len(fields_i)
+
+        fn = os.path.split(url)[1]
+
+        local_path = os.path.join(self.map_path,fn)
+
+        download_background = False
+        if os.path.exists(local_path):
+            cksum_file = hashlib.md5(open(local_path, 'rb').read()).hexdigest()
+            if checksum != cksum_file:
+                download_background = True
+        else:
+            download_background = True
+
+        if download_background:
+            print("Downloading background map")
+            if not self.download_url(url, checksum, local_path):
+                raise ValueError('Could not download background file')
+
+        maps = H.read_map(local_path, field=fields_i)
+
+        if nfields > 1:
+            hpx_map = np.zeros_like(maps[0])
+            for map_tmp in maps:
+                hpx_map += map_tmp**2
+            hpx_map = np.sqrt(hpx_map)
+        else:
+            hpx_map = maps
+
+        return hpx_map
 
     def get_hpx_file(self, experiment_name):
         '''Load the healpix file associated with a given experiment. Must be
