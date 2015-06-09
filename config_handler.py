@@ -5,7 +5,7 @@
 ====================================================================
 config_handler.py : Configuration file related classes and functions
 ====================================================================
-                    
+
 This module provides the class that interprets the configuration file and
 generates or reads in healpix maps corresponding to the survey footprints
 of each experiment
@@ -29,12 +29,15 @@ from astropy.coordinates import SkyCoord
 import cmb_footprint.util as util
 
 class ConfigHandler(object):
+    '''Class that handles reading the configuration file and generating the
+    footprints described by the configuration file'''
+
     def __init__(self, config_fn, map_path, nside=256, download_config=False):
         self.config_fn = config_fn
         self.map_path = map_path
-        
+
         if nside is None:
-            nside  = 256
+            nside = 256
 
         self.nside = nside
 
@@ -48,7 +51,7 @@ class ConfigHandler(object):
     def get_config(self):
         '''Download the configuration file from LAMBDA to the filename given
         in self.config_fn in the local directory.
-        
+
         Notes
         -----
         Remote file is footprint.txt instead of footprint.cfg because server
@@ -57,7 +60,7 @@ class ConfigHandler(object):
         '''
 
         url_pre = 'http://lambda.gsfc.nasa.gov/data/footprint-maps/'
-        
+
         local_path = os.path.join('./', self.config_fn)
         url = os.path.join(url_pre, 'footprint.txt')
 
@@ -71,21 +74,20 @@ class ConfigHandler(object):
                 if not chunk:
                     break
                 fp1.write(chunk)
-    
 
     def check_all(self):
         '''Check if we have all the correct hitmaps downloaded locally
         for experiments in which we provide Healpix files'''
-        
+
         for section in self.config.sections():
-            handler = self.config.get(section,'handler')
+            handler = self.config.get(section, 'handler')
             if handler == 'hpx_file':
-                junk = self.download_files(section)
-        
+                self.download_files(section)
+
     def load_experiment(self, experiment_name):
         '''Load or generate the healpix map for an experiment defined in the
         configuration file
-        
+
         Parameters
         ----------
         experiment_name : string
@@ -98,12 +100,11 @@ class ConfigHandler(object):
         '''
 
         try:
-            handler = self.config.get(experiment_name,'handler')
+            handler = self.config.get(experiment_name, 'handler')
         except:
             raise ValueError("We do not have information for this experiment")
 
-        
-        func = getattr(self,'get_'+handler)
+        func = getattr(self, 'get_'+handler)
         hpx_map = func(experiment_name)
 
         return hpx_map
@@ -125,7 +126,7 @@ class ConfigHandler(object):
             The local filenames
 
         '''
-           
+
         fns = self.config.get(experiment_name, 'file')
         cksums = self.config.get(experiment_name, 'checksum')
 
@@ -137,7 +138,7 @@ class ConfigHandler(object):
 #       configuration file. If they don't match (or local file does not
 #       exist), download the file. If the checksum of the downloaded file does
 #       not match the checksum in the configuration file something is wrong
-        for fn_tmp,cksum_cfg in zip(fns,cksums):
+        for fn_tmp, cksum_cfg in zip(fns, cksums):
             download_file = False
             local_path = os.path.join(self.map_path, fn_tmp)
             if os.path.exists(local_path):
@@ -152,29 +153,12 @@ class ConfigHandler(object):
                 url = os.path.join(url_pre, fn_tmp)
                 print("Downloading map for", experiment_name)
 
-                if not self.download_url(url, cksum_cfg, local_path):
+                if not util.download_url(url, cksum_cfg, local_path):
                     raise ValueError('Could not download file')
 
             fns_out.append(local_path)
 
         return fns_out
-
-    def download_url(self, url, checksum, local_path):
-
-        req = urlopen(url)
-        file_chunk = 16 * 1024
-        with open(local_path, 'wb') as fp1:
-            while True:
-                chunk = req.read(file_chunk)
-                if not chunk:
-                    break
-                fp1.write(chunk)
-
-        cksum_file = hashlib.md5(open(local_path, 'rb').read()).hexdigest()
-        if checksum != cksum_file:
-            print("Remote file checksum does not match cfg checksum")
-
-        return True
 
     def get_background(self, name):
         '''Download and process the given background'''
@@ -188,9 +172,9 @@ class ConfigHandler(object):
             fields_i.append(int(field))
         nfields = len(fields_i)
 
-        fn = os.path.split(url)[1]
+        filename = os.path.split(url)[1]
 
-        local_path = os.path.join(self.map_path,fn)
+        local_path = os.path.join(self.map_path, filename)
 
         download_background = False
         if os.path.exists(local_path):
@@ -202,7 +186,7 @@ class ConfigHandler(object):
 
         if download_background:
             print("Downloading background map")
-            if not self.download_url(url, checksum, local_path):
+            if not util.download_url(url, checksum, local_path):
                 raise ValueError('Could not download background file')
 
         maps = H.read_map(local_path, field=fields_i)
@@ -232,7 +216,7 @@ class ConfigHandler(object):
         hpx_map : array-like
             The healpix map associated with the experiment
         '''
-        
+
         fns = self.download_files(experiment_name)
 
         hpx_map = H.read_map(fns[0])
@@ -251,7 +235,7 @@ class ConfigHandler(object):
         Parameters
         ----------
         experiment_name : string
-            The experiment for which we want the hitmaps. It must be listed 
+            The experiment for which we want the hitmaps. It must be listed
             as 'radec_polygon' in the configuration file.
 
         Returns
@@ -282,8 +266,8 @@ class ConfigHandler(object):
             except:
                 break
             i += 1
-  
-        vtxs = np.transpose([ras,decs])
+
+        vtxs = np.transpose([ras, decs])
 
         hpx_map = util.gen_map_polygon(vtxs, self.nside)
 
@@ -297,7 +281,7 @@ class ConfigHandler(object):
         Parameters
         ----------
         experiment_name : string
-            The experiment for which we want the hitmaps. It must be listed 
+            The experiment for which we want the hitmaps. It must be listed
             as 'radec_disc' in the configuration file.
 
         Returns
@@ -319,7 +303,7 @@ class ConfigHandler(object):
 #       This calculation is so that radius can be input in different
 #       coordinates (i.e. deg, arcminutes, etc.)
         radius = self.config.get(experiment_name, 'radius')
-        tmp = SkyCoord('0d',radius)
+        tmp = SkyCoord('0d', radius)
         radius = np.abs(tmp.dec.deg)
 
         hpx_map = util.gen_map_disc(radec_cen, radius, self.nside)
@@ -334,7 +318,7 @@ class ConfigHandler(object):
         Parameters
         ----------
         experiment_name : string
-            The experiment for which we want the hitmaps. It must be listed 
+            The experiment for which we want the hitmaps. It must be listed
             as 'radec_rect' in the configuration file.
 
         Returns
@@ -353,7 +337,7 @@ class ConfigHandler(object):
         radec_cen = self.config.get(experiment_name, 'radec_cen').split(',')
         radec_cen = SkyCoord(radec_cen[0], radec_cen[1])
         radec_cen = [radec_cen.ra.deg, radec_cen.dec.deg]
-        
+
 #       edge length. The corners of the box are center +- length/2.0
         radec_len = self.config.get(experiment_name, 'radec_size').split(',')
         radec_len = SkyCoord(radec_len[0], radec_len[1])
@@ -371,9 +355,9 @@ class ConfigHandler(object):
         Parameters
         ----------
         experiment_name : string
-            The experiment for which we want the hitmaps. It must be listed 
+            The experiment for which we want the hitmaps. It must be listed
             as 'combination' in the configuration file.
-        
+
         Returns
         -------
         hpx_map : array-like

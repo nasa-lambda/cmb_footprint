@@ -15,10 +15,10 @@ needed elsewhere
     a varying alpha (going from 0.5 to 1)
 - :func:'bin_catalog' constructs a Healpix map with the map pixel value being
     the number of sources in that pixel
-- :func:'gen_map_centersize' constructs a Healpix map where any pixel inside 
+- :func:'gen_map_centersize' constructs a Healpix map where any pixel inside
     the rectangle defined by the center point and edge size is 1 and any
     point outside is 0
-- :func:'gen_map_polygon' constructs a Healpix map where any pixel inside 
+- :func:'gen_map_polygon' constructs a Healpix map where any pixel inside
     the polygon defined by the input vertices is 1 and any point outside is 0
 - :func:'gen_map_disc' constructs a Healpix map where any pixel inside the
     disc defined by the input center point and disc radius is 1 and any point
@@ -180,11 +180,11 @@ def bin_catalog(ra_rad, dec_rad, redshift, nside, z_left, z_right):
     npix = H.nside2npix(nside)
     nnu = len(z_left)
 #   from Ra/dec to galactic
-    rotate = H.rotator.Rotator(coord=['C','C'])
+    rotate = H.rotator.Rotator(coord=['C', 'C'])
     theta_gal, phi_gal = rotate(dec_rad, ra_rad)
 
-    gal_ind = H.pixelfunc.ang2pix(nside, theta_gal, phi_gal, 
-                                       nest=False)
+    gal_ind = H.pixelfunc.ang2pix(nside, theta_gal, phi_gal,
+                                  nest=False)
 
 #   spatial density
     gal_spatial = np.bincount(gal_ind, minlength=npix)
@@ -195,7 +195,7 @@ def bin_catalog(ra_rad, dec_rad, redshift, nside, z_left, z_right):
     for ind in range(nnu):
         in_bin = np.logical_and(redshift > z_left[ind], redshift < z_right[ind])
         gal_bin = gal_ind[in_bin]
-        gal_ring[:,ind] = np.bincount(gal_bin, minlength=npix)
+        gal_ring[:, ind] = np.bincount(gal_bin, minlength=npix)
         gal_counts[ind] = len(gal_bin)
 
 #   make a separable selection function
@@ -233,7 +233,7 @@ def gen_map_centersize(radec_cen, radec_size, nside):
     corner4 = (radec_cen[0]-radec_size[0]/2.0, radec_cen[1]+radec_size[1]/2.0)
 
     corners = (corner1, corner2, corner3, corner4)
-    
+
     hpx_map = gen_map_polygon(corners, nside)
 
     return hpx_map
@@ -249,13 +249,13 @@ def gen_map_polygon(radec_corners, nside):
 
     nside : int
         The nside of the output Healpix map
-   
+
     Returns
     -------
     hpx_map : array-like
         A Healpix map with non-zero values inside the polygon
     '''
-    
+
     radec_corners = np.array(radec_corners)
 
     thetas = np.pi/2 - np.radians(radec_corners[:, 1])
@@ -284,7 +284,7 @@ def gen_map_disc(radec_cen, rad, nside):
 
     nside : int
         The nside of the output Healpix map
-   
+
     Returns
     -------
     hpx_map : array-like
@@ -294,13 +294,13 @@ def gen_map_disc(radec_cen, rad, nside):
     theta = np.pi/2 - np.radians(radec_cen[1])
     phi = np.radians(radec_cen[0])
 
-    vec = H.ang2vec(theta,phi)
+    vec = H.ang2vec(theta, phi)
 
     ipix = H.query_disc(nside, vec, np.radians(rad))
 
     hpx_map = np.zeros(H.nside2npix(nside))
     hpx_map[ipix] = 1.0
-    
+
     return hpx_map
 
 def read_hpx_maps(fns):
@@ -311,7 +311,7 @@ def read_hpx_maps(fns):
     ----------
     fns : list of strings
         The filenames for the healpix maps to read in.
-    
+
     Returns
     -------
     hpx_map: array-like
@@ -321,7 +321,6 @@ def read_hpx_maps(fns):
     -----
     The nside of the output map will be the nside of the file map in the list.
     Every other map will be upgraded or downgraded that that nside value.
-        
     '''
 
     hpx_map = H.read_map(fns[0])
@@ -352,8 +351,25 @@ def read_wcs_maps(fns, nside):
     hpx_map = np.zeros(H.nside2npix(nside))
     for fn_tmp in fns:
         hdulist = fits.open(fn_tmp)
-        hpx_map += wcs_to_healpix(hdulist, self.nside)
+        hpx_map += wcs_to_healpix(hdulist, nside)
         hdulist.close()
 
     return hpx_map
+
+def download_url(url, checksum, local_path):
+
+    req = urlopen(url)
+    file_chunk = 16 * 1024
+    with open(local_path, 'wb') as fp1:
+        while True:
+            chunk = req.read(file_chunk)
+            if not chunk:
+                break
+            fp1.write(chunk)
+
+    cksum_file = hashlib.md5(open(local_path, 'rb').read()).hexdigest()
+    if checksum != cksum_file:
+        print("Remote file checksum does not match cfg checksum")
+
+    return True
 
