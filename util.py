@@ -30,6 +30,8 @@ needed elsewhere
     to a Healpix format, and sums the different maps together.
 '''
 
+from __future__ import print_function
+
 import numpy as np
 import healpy as H
 import astropy.wcs as wcs
@@ -109,7 +111,7 @@ def get_color_map(color):
     Returns
     -------
     colormap1: LinearSegmentedColormap
-        A color map that is a single color but varies its transparency
+        A color map that is a single color but varies its opacity
         from 0.5 to 1. Bad values and values below the minimum are completely
         transparent.
     '''
@@ -124,6 +126,8 @@ def get_color_map(color):
         rgb = colorConverter.to_rgb(color)
     elif len(color) == 3:
         rgb = color
+    else:
+        raise ValueError('Bad color input')
 
     cdict = {'red':   [(0, rgb[0], rgb[0]),
                        (1, rgb[0], rgb[0])],
@@ -140,7 +144,7 @@ def get_color_map(color):
 
     return colormap1
 
-def bin_catalog(ra_rad, dec_rad, redshift, nside, z_left, z_right):
+def bin_catalog(ra_rad, dec_rad, redshift, nside, z_left, z_right, coord='C'):
     '''Takes a catalog of ra,dec values for sources and generates a Healpix
     map with the pixel value corresponding to the number of sources located
     inside that pixel.
@@ -148,10 +152,10 @@ def bin_catalog(ra_rad, dec_rad, redshift, nside, z_left, z_right):
     Parameters
     ----------
     ra_rad : array-like
-        The ra value in radians for each source
+        The right ascension value in radians for each source
 
     dec_rad : array-like
-        The dec value in radians for each source
+        The declination value in radians for each source
 
     redshift : array-like
         The redshift for each source
@@ -164,6 +168,9 @@ def bin_catalog(ra_rad, dec_rad, redshift, nside, z_left, z_right):
 
     z_right : float
         The largest redshift for the sources added to the Healpix map
+
+    coord : 'C', 'E', or 'G'
+        The coordinate system of the output map
 
     Returns
     -------
@@ -180,10 +187,10 @@ def bin_catalog(ra_rad, dec_rad, redshift, nside, z_left, z_right):
     npix = H.nside2npix(nside)
     nnu = len(z_left)
 #   from Ra/dec to galactic
-    rotate = H.rotator.Rotator(coord=['C', 'C'])
-    theta_gal, phi_gal = rotate(dec_rad, ra_rad)
+    rotate = H.rotator.Rotator(coord=['C', coord])
+    theta, phi = rotate(dec_rad, ra_rad)
 
-    gal_ind = H.pixelfunc.ang2pix(nside, theta_gal, phi_gal,
+    gal_ind = H.pixelfunc.ang2pix(nside, theta, phi,
                                   nest=False)
 
 #   spatial density
@@ -206,17 +213,17 @@ def bin_catalog(ra_rad, dec_rad, redshift, nside, z_left, z_right):
 
     return overdensity, nbar, gal_counts, gal_spatial
 
-def gen_map_centersize(radec_cen, radec_size, nside):
+def gen_map_centersize(center, size, nside):
     '''Generates a Healpix map with the only non-zero values defined by pixels
     inside the input rectangle.
 
     Parameters
     ----------
-    radec_cen : array-like with shape (2,)
-        The center ra,dec in degrees of the rectangle
+    center : array-like with shape (2,)
+        The center lon,lat in degrees of the rectangle
 
-    radec_size : array-like with shape (2,)
-        The length of the edge in ra,dec space of the rectangle in degrees
+    size : array-like with shape (2,)
+        The length of the edge in lone,lat space of the rectangle in degrees
 
     nside : int
         The nside of the output Healpix map
@@ -224,28 +231,28 @@ def gen_map_centersize(radec_cen, radec_size, nside):
     Returns
     -------
     hpx_map : array-like
-        A Healpix map with non-zero values inside the rectangle
+        A Healpix map with non-zero values inside the rectangle.
     '''
 
-    corner1 = (radec_cen[0]+radec_size[0]/2.0, radec_cen[1]+radec_size[1]/2.0)
-    corner2 = (radec_cen[0]+radec_size[0]/2.0, radec_cen[1]-radec_size[1]/2.0)
-    corner3 = (radec_cen[0]-radec_size[0]/2.0, radec_cen[1]-radec_size[1]/2.0)
-    corner4 = (radec_cen[0]-radec_size[0]/2.0, radec_cen[1]+radec_size[1]/2.0)
+    corner1 = (center[0]+size[0]/2.0, center[1]+size[1]/2.0)
+    corner2 = (center[0]+size[0]/2.0, center[1]-size[1]/2.0)
+    corner3 = (center[0]-size[0]/2.0, center[1]-size[1]/2.0)
+    corner4 = (center[0]-size[0]/2.0, center[1]+size[1]/2.0)
 
-    corners = (corner1, corner2, corner3, corner4)
+    vertices = (corner1, corner2, corner3, corner4)
 
-    hpx_map = gen_map_polygon(corners, nside)
+    hpx_map = gen_map_polygon(vertices, nside)
 
     return hpx_map
 
-def gen_map_polygon(radec_corners, nside):
+def gen_map_polygon(vertices, nside):
     '''Generates a Healpix map with the only non-zero values in the pixels
     inside the input polygon
 
     Parameters
     ----------
-    radec_corners : array-like with shape (n,2)
-        The ra,dec corners of the polygon in degrees
+    vertices : array-like with shape (n,2) or (2,n)
+        The lon,lat vertices of the polygon in degrees. n >= 3
 
     nside : int
         The nside of the output Healpix map
@@ -256,10 +263,15 @@ def gen_map_polygon(radec_corners, nside):
         A Healpix map with non-zero values inside the polygon
     '''
 
-    radec_corners = np.array(radec_corners)
+    vertices = np.array(vertices)
 
-    thetas = np.pi/2 - np.radians(radec_corners[:, 1])
-    phis = np.radians(radec_corners[:, 0])
+    if vertices.shape[1] != 2:
+        vertices = np.transpose(vertices)
+        if vertices.shape[1] != 2:
+            raise ValueError("Need a n x 2 or 2 x n input vertices array")
+
+    thetas = np.pi/2 - np.radians(vertices[:, 1])
+    phis = np.radians(vertices[:, 0])
 
     vecs = H.ang2vec(thetas, phis)
 

@@ -11,11 +11,13 @@ generates or reads in healpix maps corresponding to the survey footprints
 of each experiment
 '''
 
+from __future__ import print_function
+
 # For differing imports between Python2 and Python3
 try:
     import ConfigParser
     from urllib2 import urlopen
-except:
+except ImportError:
     import configparser as ConfigParser
     from urllib.request import urlopen
 
@@ -99,10 +101,7 @@ class ConfigHandler(object):
             Healpix map with the hitmap for the requested experiment
         '''
 
-        try:
-            handler = self.config.get(experiment_name, 'handler')
-        except:
-            raise ValueError("We do not have information for this experiment")
+        handler = self.config.get(experiment_name, 'handler')
 
         func = getattr(self, 'get_'+handler)
         hpx_map = func(experiment_name)
@@ -255,16 +254,17 @@ class ConfigHandler(object):
         decs = []
 
         i = 1
-        while 1:
+        while True:
             radec_point = 'vertex'+str(i)
             try:
                 radec_val = self.config.get(experiment_name, radec_point)
-                radec_val = radec_val.split(',')
-                radec_val = SkyCoord(radec_val[0], radec_val[1])
-                ras.append(radec_val.ra.deg)
-                decs.append(radec_val.dec.deg)
-            except:
+            except ConfigParser.NoOptionError:
                 break
+
+            radec_val = radec_val.split(',')
+            radec_val = SkyCoord(radec_val[0], radec_val[1])
+            ras.append(radec_val.ra.deg)
+            decs.append(radec_val.dec.deg)
             i += 1
 
         vtxs = np.transpose([ras, decs])

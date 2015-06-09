@@ -92,13 +92,19 @@ class SurveyStack(object):
         hpx_map : array-like
             The hpx_map to superimpose upon the background.
 
+        label : string
+            The label to put on the colorbar for this footprint.
+
         color : string or array-like with shape (3,)
             The color to use when overlaying the survey footprint. Either a
             string or rgb triplet.
 
+        coord_in : 'C', 'G', or 'E'
+            The coordinate system of the input healpix map.
+
         Notes
         -----
-        The input healpix map will replace zeros in the map with NaNs to make
+        The input healpix map will have zeros replaced with NaNs to make
         those points completely transparent.
         '''
 
@@ -167,7 +173,7 @@ class SurveyStack(object):
             'WCS' or 'HPX' describing the type of map in the FITS file.
 
         coord_in : 'C', G', or 'E'
-            Coordinate system of the FITS map
+            Coordinate system of the input map
         '''
 
         if maptype == 'WCS':
@@ -177,7 +183,7 @@ class SurveyStack(object):
 
         self.superimpose_hpxmap(hpx_map, label, color=color, coord_in=coord_in)
 
-    def superimpose_bound_cen(self, radec_cen, radec_size, label,
+    def superimpose_bound_cen(self, center, size, label,
                               color='red', coord_in='C'):
         '''Superimpose the footprint of an experiment on the background image
         by giving input radec boundaries for the map. Boundaries are defined
@@ -185,10 +191,10 @@ class SurveyStack(object):
 
         Parameters
         ----------
-        radec_cen : array-like with shape (2,)
-            The center ra/dec of the survey (degrees)
+        center : array-like with shape (2,)
+            The center of the survey (degrees). ra/dec, gall/galb, etc.
 
-        radec_size : array-like with shape (2,)
+        size : array-like with shape (2,)
             The length of the edge of the rectangle in degrees
         
         label : string
@@ -196,48 +202,48 @@ class SurveyStack(object):
 
         color : string or array-like with shape (3,)
             The color to use when overlaying the survey footprint. Either a
-            string or rgb triplet.
+            string or rgb triplet. Default : 'red'
 
         coord_in : 'C', 'G', or 'E'
             The coordinate system of the input parameters. 'C' would mean
-            input values are in ra,dec.
+            input values are in ra,dec. Default : 'C'
         '''
 
-        hpx_map = util.gen_map_centersize(radec_cen, radec_size, self.nside)
+        hpx_map = util.gen_map_centersize(center, size, self.nside)
 
         self.superimpose_hpxmap(hpx_map, label, color=color,
                                 coord_in=coord_in)
 
-    def superimpose_bound_circ(self, radec_cen, rad, label,
+    def superimpose_bound_circ(self, center, radius, label,
                                color='red', coord_in='C'):
         '''Superimpose the footprint of an experiment on the background image
         by giving an input center ra/dec and a radius of a disc.
 
         Parameters
         ----------
-        radec_cen : array-like with shape (2,)
-            The center ra/dec of the survey (degrees)
+        center : array-like with shape (2,)
+            The center of the survey (degrees). ra/dec, gall/galb, etc.
 
-        rad : float
-            The radius of the disc
+        radius : float
+            The radius of the disc (degrees)
 
         label : string
             The label to put on the colorbar for this experiment
 
         color : string or array-like with shape (3,)
             The color for the experiment. Either a string recognized by
-            matplotlib or a rgb triplet.
+            matplotlib or a rgb triplet. Default : 'red'
 
         coord_in : 'C', 'E', or 'G'
-            The coordinate system of the input values
+            The coordinate system of the input values. Default : 'C'
         '''
 
-        hpx_map = util.gen_map_disc(radec_cen, rad, self.nside)
+        hpx_map = util.gen_map_disc(center, radius, self.nside)
 
         self.superimpose_hpxmap(hpx_map, label, color=color,
                                 coord_in=coord_in)
 
-    def superimpose_bound_vtx(self, radec_corners, label, color='red',
+    def superimpose_bound_vtx(self, vertices, label, color='red',
                               coord_in='C'):
         '''Superimpose the footprint of an experiment on the background image
         by giving the ra/dec corners of the image. The enclosed survey
@@ -245,15 +251,21 @@ class SurveyStack(object):
 
         Parameters
         ----------
-        radec_corners : array-like with shape (n,2)
+        vertices : array-like with shape (n,2)
             The n corners of the survey footprint in degrees.
+
+        label : string
+            The label to put on the colorbar for this experiment
 
         color : string or array-like with shape (3,)
             The color to use when overlaying the survey footprint. Either a
-            string or rgb triplet.
+            string or rgb triplet. Default : 'red'
+
+        coord_in : 'C', 'E', or 'G'
+            The coordinate system of the input vertices. Default : 'C'
         '''
 
-        hpx_map = util.gen_map_polygon(radec_corners, self.nside)
+        hpx_map = util.gen_map_polygon(vertices, self.nside)
 
         self.superimpose_hpxmap(hpx_map, label, color=color,
                                 coord_in=coord_in)
@@ -278,7 +290,8 @@ class SurveyStack(object):
             map
 
         label : string
-            The label for the experiment. If none, experiment_name is used
+            The label for the experiment. If none, experiment_name is used as
+            the label.
         '''
 
         hpx_map = self.config.load_experiment(experiment_name)
