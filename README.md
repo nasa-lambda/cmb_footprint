@@ -65,27 +65,27 @@ This reads in a footprint stored as a Healpix file. If the file does not
 exist in the path specified when you initialize the class, it will attempt
 to download the file from LAMBDA
 
-* handler : hpx_file
-* file : filename of the file
-* checksum : The MD5 checksum of the file. It the checksum does not match the
+* **handler** : hpx_file
+* **file** : filename of the file
+* **checksum** : The MD5 checksum of the file. It the checksum does not match the
 checksum of the local file, it will attempt to download it from LAMBDA.
 
 ### Disc ###
 
 This generates a disc footprint given a location and radius for the disc.
 
-* handler : radec_disc
-* radec_cen : The center of the disc in ra,dec in human readable form
+* **handler** : radec_disc
+* **radec_cen** : The center of the disc in ra,dec in human readable form
 (i.e. 4h12m,-12d4m). Values must be separated by a comma
-* radius : The radius of the disc in human readable form
+* **radius** : The radius of the disc in human readable form
 
 ### Polygon ###
 
 This generates a footprint given vertices of a polygon. There is no limit to
 the number of vertices, but the resulting polygon must be convex.
 
-* handler : radec_polygon
-* vertex1, vertex2, ... : Ra,dec location of the vertex. The ra,dec values
+* **handler** : radec_polygon
+* **vertex1**, **vertex2**, ... : Ra,dec location of the vertex. The ra,dec values
 must be separated by a comma
 
 ### Rectangle ###
@@ -95,9 +95,9 @@ from a center point and a length of each side. The rectangle is always
 oriented along ra/dec lines. This will only look like a rectangle in a
 cartesian like projection where the x- and y-axes are ra/dec.
 
-* handler : radec_rect
-* radec_cen : The center ra,dec of the rectangle.
-* radec_size : The length of the sides of the rectangle.
+* **handler** : radec_rect
+* **radec_cen** : The center ra,dec of the rectangle.
+* **radec_size** : The length of the sides of the rectangle.
 
 ### Combination ###
 
@@ -107,8 +107,8 @@ that a single experiment can have multiple entries for different patches, so
 we can choose to plot a single patch or multiple patches without the code
 thinking they are different experiments.
 
-* handler : combination
-* components : The names of the other entries in the configuration file that
+* **handler** : combination
+* **components** : The names of the other entries in the configuration file that
 will be combined. Names must be separated by a comma.
 
 ## Who do I talk to? ##
