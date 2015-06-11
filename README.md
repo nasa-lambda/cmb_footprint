@@ -67,6 +67,7 @@ to download the file from LAMBDA
 
 * **handler** : hpx_file
 * **file** : filename of the file
+* **coord** : 'C', 'E', or 'G' describing the coordinate system of the map
 * **checksum** : The MD5 checksum of the file. It the checksum does not match the
 checksum of the local file, it will attempt to download it from LAMBDA.
 
@@ -75,8 +76,9 @@ checksum of the local file, it will attempt to download it from LAMBDA.
 This generates a disc footprint given a location and radius for the disc.
 
 * **handler** : radec_disc
-* **radec_cen** : The center of the disc in ra,dec in human readable form
+* **center** : The center of the disc in lon,lat in human readable form
 (i.e. 4h12m,-12d4m). Values must be separated by a comma
+* **coord** : 'C', 'E', or 'G' describing the coordinate system of the input values
 * **radius** : The radius of the disc in human readable form
 
 ### Polygon ###
@@ -85,8 +87,9 @@ This generates a footprint given vertices of a polygon. There is no limit to
 the number of vertices, but the resulting polygon must be convex.
 
 * **handler** : radec_polygon
-* **vertex1**, **vertex2**, ... : Ra,dec location of the vertex. The ra,dec values
+* **vertex1**, **vertex2**, ... : Lon,lat location of the vertex. The lon,lat values
 must be separated by a comma
+* **coord** : 'C', 'E', or 'G' describing the coordinate system of the input values
 
 ### Rectangle ###
 
@@ -96,8 +99,9 @@ oriented along ra/dec lines. This will only look like a rectangle in a
 cartesian like projection where the x- and y-axes are ra/dec.
 
 * **handler** : radec_rect
-* **radec_cen** : The center ra,dec of the rectangle.
-* **radec_size** : The length of the sides of the rectangle.
+* **center** : The center lon,lat of the rectangle.
+* **size** : The length of the sides of the rectangle.
+* **coord** : 'C', 'E', or 'G' describing the coordinate system of the input values
 
 ### Combination ###
 
@@ -105,7 +109,8 @@ The last option is a combination option which combines the footprints of
 multiple other experiments listed in the configuration file. This is used so
 that a single experiment can have multiple entries for different patches, so
 we can choose to plot a single patch or multiple patches without the code
-thinking they are different experiments.
+thinking they are different experiments. All component maps must have the same
+coordinate system because we just sum the Healpix maps together.
 
 * **handler** : combination
 * **components** : The names of the other entries in the configuration file that

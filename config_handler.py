@@ -104,9 +104,9 @@ class ConfigHandler(object):
         handler = self.config.get(experiment_name, 'handler')
 
         func = getattr(self, 'get_'+handler)
-        hpx_map = func(experiment_name)
+        hpx_map, coord = func(experiment_name)
 
-        return hpx_map
+        return hpx_map, coord
 
     def download_files(self, experiment_name):
         '''Return the local paths to the files associated with an experiment.
@@ -164,6 +164,7 @@ class ConfigHandler(object):
 
         url = self.config.get(name, 'url')
         checksum = self.config.get(name, 'checksum')
+        coord = self.config.get(name, 'coord')
 
         fields = self.config.get(name, 'fields').split(',')
         fields_i = []
@@ -198,7 +199,7 @@ class ConfigHandler(object):
         else:
             hpx_map = maps
 
-        return hpx_map
+        return hpx_map, coord
 
     def get_hpx_file(self, experiment_name):
         '''Load the healpix file associated with a given experiment. Must be
@@ -217,6 +218,7 @@ class ConfigHandler(object):
         '''
 
         fns = self.download_files(experiment_name)
+        coord = self.config.get(experiment_name, 'coord')
 
         hpx_map = H.read_map(fns[0])
         nside = H.npix2nside(len(hpx_map))
@@ -224,9 +226,9 @@ class ConfigHandler(object):
             tmp_map = H.read_map(fn_tmp)
             hpx_map += H.ud_grade(tmp_map, nside)
 
-        return hpx_map
+        return hpx_map, coord
 
-    def get_radec_polygon(self, experiment_name):
+    def get_polygon(self, experiment_name):
         '''Generates a healpix map for a given experiment given vertices of
         a polygon. Must be listed as 'radec_polygon' in the configuration
         file.
@@ -269,11 +271,13 @@ class ConfigHandler(object):
 
         vtxs = np.transpose([ras, decs])
 
+        coord = self.config.get(experiment_name, 'coord')
+
         hpx_map = util.gen_map_polygon(vtxs, self.nside)
 
-        return hpx_map
+        return hpx_map, coord
 
-    def get_radec_disc(self, experiment_name):
+    def get_disc(self, experiment_name):
         '''Generates a healpix map for a given experiment given a center point
         and a disc radius. Must be listed as 'radec_disc' in the configuration
         file.
@@ -296,9 +300,9 @@ class ConfigHandler(object):
         in the initializaiton of this class.
         '''
 
-        radec_cen = self.config.get(experiment_name, 'radec_cen').split(',')
-        radec_cen = SkyCoord(radec_cen[0], radec_cen[1])
-        radec_cen = [radec_cen.ra.deg, radec_cen.dec.deg]
+        center = self.config.get(experiment_name, 'center').split(',')
+        center = SkyCoord(center[0], center[1])
+        center = [center.ra.deg, center.dec.deg]
 
 #       This calculation is so that radius can be input in different
 #       coordinates (i.e. deg, arcminutes, etc.)
@@ -306,11 +310,13 @@ class ConfigHandler(object):
         tmp = SkyCoord('0d', radius)
         radius = np.abs(tmp.dec.deg)
 
-        hpx_map = util.gen_map_disc(radec_cen, radius, self.nside)
+        coord = self.config.get(experiment_name, 'coord')
 
-        return hpx_map
+        hpx_map = util.gen_map_disc(center, radius, self.nside)
 
-    def get_radec_rect(self, experiment_name):
+        return hpx_map, coord
+
+    def get_rectangle(self, experiment_name):
         '''Generates a healpix map for a given experiment given a center point
         and edge length of the rectanlge. Must be listed as 'radec_rect' in
         the configuration file.
@@ -328,24 +334,26 @@ class ConfigHandler(object):
 
         Notes
         -----
-        The configuration file must contain a 'radec_cen' and a 'radec_size'
-        entry. The 'radec_size' entry must contain the ra,dec length of the
+        The configuration file must contain a 'center', a 'size', and a
+        'coord' entry. The 'size' entry must contain the lon,lat length of the
         edge of the rectangle. The nside of the output map is the same as the
         nside specified in the initialization of this class.
         '''
 
-        radec_cen = self.config.get(experiment_name, 'radec_cen').split(',')
-        radec_cen = SkyCoord(radec_cen[0], radec_cen[1])
-        radec_cen = [radec_cen.ra.deg, radec_cen.dec.deg]
+        center = self.config.get(experiment_name, 'center').split(',')
+        center = SkyCoord(center[0], center[1])
+        center = [center.ra.deg, center.dec.deg]
 
 #       edge length. The corners of the box are center +- length/2.0
-        radec_len = self.config.get(experiment_name, 'radec_size').split(',')
-        radec_len = SkyCoord(radec_len[0], radec_len[1])
-        radec_len = [radec_len.ra.deg, radec_len.dec.deg]
+        length = self.config.get(experiment_name, 'size').split(',')
+        length = SkyCoord(length[0], length[1])
+        length = [length.ra.deg, length.dec.deg]
 
-        hpx_map = util.gen_map_centersize(radec_cen, radec_len, self.nside)
+        coord = self.config.get(experiment_name, 'coord')
 
-        return hpx_map
+        hpx_map = util.gen_map_centersize(center, length, self.nside)
+
+        return hpx_map, coord
 
     def get_combination(self, experiment_name):
         '''Generates a healpix map for a given experiment that is a
@@ -367,13 +375,17 @@ class ConfigHandler(object):
         -----
         The configuration file must contain a 'components' entry which lists
         the different configuration file entries, separated by a ',' that make
-        up this experiment
+        up this experiment.
         '''
 
         components = self.config.get(experiment_name, 'components').split(',')
 
-        hpx_map = self.load_experiment(components[0])
+        hpx_map, coord = self.load_experiment(components[0])
         for component in components[1:]:
-            hpx_map += self.load_experiment(component)
+            tmp_map, coord_tmp = self.load_experiment(component)
+            if coord_tmp != coord:
+#               Could we do something to rotate the maps using Healpy?
+                raise ValueError('All maps in combination must be in the same coordinate system')
+            hpx_map += tmp_map
 
-        return hpx_map
+        return hpx_map, coord

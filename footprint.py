@@ -55,7 +55,7 @@ class SurveyStack(object):
 
 #       Could also just call load_experiment which will call get_background
         if isinstance(background, str):
-            background = self.config.get_background(background)
+            background, coord_bg = self.config.get_background(background)
 
         if nside is None:
             nside = H.npix2nside(len(background))
@@ -271,7 +271,7 @@ class SurveyStack(object):
                                 coord_in=coord_in)
 
     def superimpose_experiment(self, experiment_name, color='red',
-                               coord_in='C', label=None):
+                               label=None):
         '''Superimpose a specific experiment whose Healpix footprints we have
         pregenerated and are listed in the configuration file
 
@@ -285,20 +285,16 @@ class SurveyStack(object):
             The color to use when overlaying the survey footprint. Either a
             string or rgb triplet.
 
-        coord_in : character
-            One of 'G', 'E', or 'C' to describe the coordinate system of the
-            map
-
         label : string
             The label for the experiment. If none, experiment_name is used as
             the label.
         '''
 
-        hpx_map = self.config.load_experiment(experiment_name)
+        hpx_map, coord = self.config.load_experiment(experiment_name)
 
         if label is None:
             label = experiment_name
 
         self.superimpose_hpxmap(hpx_map, label, color=color,
-                                coord_in=coord_in)
+                                coord_in=coord)
 
