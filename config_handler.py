@@ -189,7 +189,7 @@ class ConfigHandler(object):
             if not util.download_url(url, checksum, local_path):
                 raise ValueError('Could not download background file')
 
-        maps = H.read_map(local_path, field=fields_i)
+        maps = H.read_map(local_path, field=fields_i, verbose=False)
 
         if nfields > 1:
             hpx_map = np.zeros_like(maps[0])
@@ -220,10 +220,10 @@ class ConfigHandler(object):
         fns = self.download_files(experiment_name)
         coord = self.config.get(experiment_name, 'coord')
 
-        hpx_map = H.read_map(fns[0])
+        hpx_map = H.read_map(fns[0], verbose=False)
         nside = H.npix2nside(len(hpx_map))
         for fn_tmp in fns[1:]:
-            tmp_map = H.read_map(fn_tmp)
+            tmp_map = H.read_map(fn_tmp, verbose=False)
             hpx_map += H.ud_grade(tmp_map, nside)
 
         return hpx_map, coord

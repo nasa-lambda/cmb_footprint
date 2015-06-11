@@ -335,10 +335,10 @@ def read_hpx_maps(fns):
     Every other map will be upgraded or downgraded that that nside value.
     '''
 
-    hpx_map = H.read_map(fns[0])
+    hpx_map = H.read_map(fns[0], verbose=False)
     nside = H.npix2nside(len(hpx_map))
     for fn_tmp in fns[1:]:
-        tmp_map = H.read_map(fn_tmp)
+        tmp_map = H.read_map(fn_tmp, verbose=False)
         hpx_map += H.ud_grade(tmp_map, nside)
 
     return hpx_map

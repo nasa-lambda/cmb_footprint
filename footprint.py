@@ -82,7 +82,7 @@ class SurveyStack(object):
                          norm='log', min=1.0, max=5000, notext=True,
                          cbar=None, rot=rot, flip='astro')
 
-        H.graticule(dpar=30.0, dmer=30.0, coord='C')
+        H.graticule(dpar=30.0, dmer=30.0, coord='C', verbose=False)
 
     def superimpose_hpxmap(self, hpx_map, label, color='red', coord_in='C'):
         '''Superimpose a Healpix map on the background map.
