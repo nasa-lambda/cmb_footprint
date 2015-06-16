@@ -75,7 +75,7 @@ checksum of the local file, it will attempt to download it from LAMBDA.
 
 This generates a disc footprint given a location and radius for the disc.
 
-* **handler** : radec_disc
+* **handler** : disc
 * **center** : The center of the disc in lon,lat in human readable form
 (i.e. 4h12m,-12d4m). Values must be separated by a comma
 * **coord** : 'C', 'E', or 'G' describing the coordinate system of the input values
@@ -86,7 +86,7 @@ This generates a disc footprint given a location and radius for the disc.
 This generates a footprint given vertices of a polygon. There is no limit to
 the number of vertices, but the resulting polygon must be convex.
 
-* **handler** : radec_polygon
+* **handler** : polygon
 * **vertex1**, **vertex2**, ... : Lon,lat location of the vertex. The lon,lat values
 must be separated by a comma
 * **coord** : 'C', 'E', or 'G' describing the coordinate system of the input values
@@ -98,7 +98,7 @@ from a center point and a length of each side. The rectangle is always
 oriented along ra/dec lines. This will only look like a rectangle in a
 cartesian like projection where the x- and y-axes are ra/dec.
 
-* **handler** : radec_rect
+* **handler** : rectangle
 * **center** : The center lon,lat of the rectangle.
 * **size** : The length of the sides of the rectangle.
 * **coord** : 'C', 'E', or 'G' describing the coordinate system of the input values
