@@ -37,6 +37,16 @@ import healpy as H
 import astropy.wcs as wcs
 from astropy.io import fits
 from scipy.sparse import coo_matrix
+import hashlib
+
+# For differing imports between Python2 and Python3
+try:
+    import ConfigParser
+    from urllib2 import urlopen
+except ImportError:
+    import configparser as ConfigParser
+    from urllib.request import urlopen
+
 
 def wcs_to_healpix(hdulist, nside):
     '''Converts data in an opened FITS file from a generic WCS to Healpix.
