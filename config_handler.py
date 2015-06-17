@@ -126,10 +126,10 @@ class ConfigHandler(object):
 
         '''
 
-        fns = self.config.get(experiment_name, 'file')
+        urls = self.config.get(experiment_name, 'url')
         cksums = self.config.get(experiment_name, 'checksum')
 
-        fns = fns.split(',')
+        urls = urls.split(',')
         cksums = cksums.split(',')
 
         fns_out = []
@@ -137,7 +137,8 @@ class ConfigHandler(object):
 #       configuration file. If they don't match (or local file does not
 #       exist), download the file. If the checksum of the downloaded file does
 #       not match the checksum in the configuration file something is wrong
-        for fn_tmp, cksum_cfg in zip(fns, cksums):
+        for url, cksum_cfg in zip(urls, cksums):
+            fn_tmp = os.path.split(url)[1]
             download_file = False
             local_path = os.path.join(self.map_path, fn_tmp)
             if os.path.exists(local_path):
@@ -148,8 +149,6 @@ class ConfigHandler(object):
                 download_file = True
 
             if download_file:
-                url_pre = 'http://lambda.gsfc.nasa.gov/data/footprint-maps'
-                url = os.path.join(url_pre, fn_tmp)
                 print("Downloading map for", experiment_name)
 
                 if not util.download_url(url, cksum_cfg, local_path):
