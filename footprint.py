@@ -55,7 +55,7 @@ class SurveyStack(object):
 
 #       Could also just call load_experiment which will call get_background
         if isinstance(background, str):
-            background, coord_bg = self.config.get_background(background)
+            background, coord_bg = self.config.load_experiment(background)
 
         if nside is None:
             nside = H.npix2nside(len(background))

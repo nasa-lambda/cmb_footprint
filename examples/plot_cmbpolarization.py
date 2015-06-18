@@ -17,7 +17,7 @@ if __name__ == '__main__':
 #           partialmap=True, latra=[-20,20], lonra=[-20,20], config='../footprint.cfg')
 #   fp = footprint.SurveyStack(background_map, fignum=1, projection=H.mollview, coord_plot='C', rot=[0,0],
 #                              config='../footprint.cfg') 
-    fp = footprint.SurveyStack('PLANCK-DUSTPOL-BACKGROUND', fignum=1, projection=H.mollview, coord_plot='C', rot=[0,0],
+    fp = footprint.SurveyStack('PLANCK-DUSTPOL-AMP', fignum=1, projection=H.mollview, coord_plot='C', rot=[0,0],
                                config='../footprint.cfg') 
 
     fp.superimpose_experiment('ACT',color='green')
