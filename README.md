@@ -57,7 +57,7 @@ every time the code is run.
 
 There are several different ways to input experiments to the configuration
 file. Here we will go over all the different types. For each types I will
-list the different keys that must go in the configuration file for that entry. 
+list the different keys that must go in the configuration file for that entry. The regions are specified as strings in the standard astropy [coordinate format](http://astropy.readthedocs.org/en/latest/coordinates/).
 
 ### Healpix File ###
 

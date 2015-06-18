@@ -4,6 +4,14 @@ import numpy as np
 import pylab as pl
 import healpy as H
 
+# append the cmb_footprint source path
+# you can add this to your PYTHONPATH also
+import os
+import sys
+separator = os.sep
+fullpath = os.getcwd().split(separator)
+source_path = separator.join(fullpath[0:-2])
+sys.path.append(source_path)
 from cmb_footprint import footprint
 
 if __name__ == '__main__':
