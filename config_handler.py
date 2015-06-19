@@ -158,48 +158,6 @@ class ConfigHandler(object):
 
         return fns_out
 
-    def get_background(self, name):
-        '''Download and process the given background'''
-
-        url = self.config.get(name, 'url')
-        checksum = self.config.get(name, 'checksum')
-        coord = self.config.get(name, 'coord')
-
-        fields = self.config.get(name, 'fields').split(',')
-        fields_i = []
-        for field in fields:
-            fields_i.append(int(field))
-        nfields = len(fields_i)
-
-        filename = os.path.split(url)[1]
-
-        local_path = os.path.join(self.map_path, filename)
-
-        download_background = False
-        if os.path.exists(local_path):
-            cksum_file = hashlib.md5(open(local_path, 'rb').read()).hexdigest()
-            if checksum != cksum_file:
-                download_background = True
-        else:
-            download_background = True
-
-        if download_background:
-            print("Downloading background map")
-            if not util.download_url(url, checksum, local_path):
-                raise ValueError('Could not download background file')
-
-        maps = H.read_map(local_path, field=fields_i, verbose=False)
-
-        if nfields > 1:
-            hpx_map = np.zeros_like(maps[0])
-            for map_tmp in maps:
-                hpx_map += map_tmp**2
-            hpx_map = np.sqrt(hpx_map)
-        else:
-            hpx_map = maps
-
-        return hpx_map, coord
-
     def get_hpx_file(self, experiment_name):
         '''Load the healpix file associated with a given experiment. Must be
         listed as 'hpx_file' in the configuration file.
@@ -251,8 +209,8 @@ class ConfigHandler(object):
         initialization of this class.
         '''
 
-        ras = []
-        decs = []
+        lons = []
+        lats = []
 
         i = 1
         while True:
@@ -262,13 +220,14 @@ class ConfigHandler(object):
             except ConfigParser.NoOptionError:
                 break
 
-            radec_val = radec_val.split(',')
-            radec_val = SkyCoord(radec_val[0], radec_val[1])
-            ras.append(radec_val.ra.deg)
-            decs.append(radec_val.dec.deg)
+            lonlat_val = radec_val.split(',')
+            lonlat_val = [tmp.strip() for tmp in lonlat_val]
+            lonlat_val = SkyCoord(lonlat_val[0], lonlat_val[1])
+            lons.append(lonlat_val.ra.deg)
+            lats.append(lonlat_val.dec.deg)
             i += 1
 
-        vtxs = np.transpose([ras, decs])
+        vtxs = np.transpose([lons, lats])
 
         coord = self.config.get(experiment_name, 'coord')
 
@@ -300,6 +259,7 @@ class ConfigHandler(object):
         '''
 
         center = self.config.get(experiment_name, 'center').split(',')
+        center = [tmp.strip() for tmp in center]
         center = SkyCoord(center[0], center[1])
         center = [center.ra.deg, center.dec.deg]
 
@@ -340,11 +300,13 @@ class ConfigHandler(object):
         '''
 
         center = self.config.get(experiment_name, 'center').split(',')
+        center = [tmp.strip() for tmp in center]
         center = SkyCoord(center[0], center[1])
         center = [center.ra.deg, center.dec.deg]
 
 #       edge length. The corners of the box are center +- length/2.0
         length = self.config.get(experiment_name, 'size').split(',')
+        length = [tmp.strip() for tmp in length]
         length = SkyCoord(length[0], length[1])
         length = [length.ra.deg, length.dec.deg]
 
@@ -378,6 +340,7 @@ class ConfigHandler(object):
         '''
 
         components = self.config.get(experiment_name, 'components').split(',')
+        components = [tmp.strip() for tmp in components]
 
         hpx_map, coord = self.load_experiment(components[0])
         for component in components[1:]:
