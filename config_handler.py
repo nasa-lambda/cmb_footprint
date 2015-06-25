@@ -348,8 +348,8 @@ class ConfigHandler(object):
 
         corner1 = (top_right.ra.deg, top_right.dec.deg)
         corner2 = (top_right.ra.deg, bottom_left.dec.deg)
-        corner3 = (bottom_left.ra.deg, top_right.dec.deg)
-        corner4 = (bottom_left.ra.deg, bottom_left.dec.deg)
+        corner3 = (bottom_left.ra.deg, bottom_left.dec.deg)
+        corner4 = (bottom_left.ra.deg, top_right.dec.deg)
         vertices = (corner1, corner2, corner3, corner4)
 
         hpx_map = util.gen_map_polygon(vertices, self.nside)

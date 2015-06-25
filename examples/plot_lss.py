@@ -30,5 +30,7 @@ if __name__ == '__main__':
 
     fp.superimpose_survey('HSC-FALL1-EQ',color='blue')
     fp.superimpose_survey('HSC-FALL2-EQ',color='orange')
+    fp.superimpose_survey('HSC-SPRING-EQ',color='black')
+    fp.superimpose_survey('HSC-NORTH',color='purple')
 
     pl.show()
