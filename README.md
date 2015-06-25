@@ -4,8 +4,8 @@ This is the README for the CMB footprint module provided by LAMBDA.
 
 ## What is this repository for? ##
 
-The CMB footprint module is designed to show where different experiments are
-observing on the sky. All experiments for which we provide survey footprints
+The CMB footprint module is designed to show where different surveys are
+observing on the sky. All surveys for which we provide footprint regions
 are listed in the footprint.cfg file.
 
 ## How do I get set up? ##
@@ -41,12 +41,12 @@ can plot using any projection that Healpy provides and use most of the options
 that these projections provide. The coordinate system of the background map
 and the coordinate system of the plot should be provided though they do have
 default values ('G' and 'C' respectively). The coordinate system of each
-experiment in the configuration file is assumed to be in Equatorial
+survey in the configuration file is assumed to be in Equatorial
 coordinates, though if an input map is provided instead of using the
 definitions in the configuration file, a coordinate system should be provided.
 
 The input colors can be any string understood by matplotlib or an rgb triplet.
-The plotted regions for single experiment will have the same color but a
+The plotted regions for single survey will have the same color but a
 varying (0.5 to 1) alpha depending on the pixel value.
 
 A copy of the latest configuration file is additionally stored on LAMBDA and
@@ -55,7 +55,7 @@ every time the code is run.
 
 ## Types of Configuration File Entries ##
 
-There are several different ways to input experiments to the configuration
+There are several different ways to input surveys to the configuration
 file. Here we will go over all the different types. For each types I will
 list the different keys that must go in the configuration file for that entry. The regions are specified as strings in the standard astropy [coordinate format](http://astropy.readthedocs.org/en/latest/coordinates/).
 
@@ -106,10 +106,10 @@ cartesian like projection where the x- and y-axes are ra/dec.
 ### Combination ###
 
 The last option is a combination option which combines the footprints of
-multiple other experiments listed in the configuration file. This is used so
-that a single experiment can have multiple entries for different patches, so
+multiple other surveys listed in the configuration file. This is used so
+that a single survey can have multiple entries for different patches, so
 we can choose to plot a single patch or multiple patches without the code
-thinking they are different experiments. All component maps must have the same
+thinking they are different surveys. All component maps must have the same
 coordinate system because we just sum the Healpix maps together.
 
 * **handler** : combination

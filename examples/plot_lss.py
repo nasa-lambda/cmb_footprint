@@ -20,12 +20,15 @@ if __name__ == '__main__':
 #   data = H.read_map(fn_background,field=(0,1))
 #   background_map = np.sqrt(data[0]**2 + data[1]**2)
 #   fp = footprint.SurveyStack(background_map, projection=H.mollview,
-#                              coord_plot='C') 
+#                              coord_plot='C')
 
     fp = footprint.SurveyStack('PLANCK-DUSTPOL', projection=H.mollview, coord_plot='C', rot=[0,0],
-                               config='../footprint.cfg') 
+                               config='../footprint.cfg')
 
-    fp.superimpose_experiment('BOSS-LSS-RANDOM2',color='green')
-    fp.superimpose_experiment('BOSS-QSO',color='red')
- 
+    fp.superimpose_survey('BOSS-LSS-RANDOM2',color='green')
+    fp.superimpose_survey('BOSS-QSO',color='red')
+
+    fp.superimpose_survey('HSC-FALL1-EQ',color='blue')
+    fp.superimpose_survey('HSC-FALL2-EQ',color='orange')
+
     pl.show()

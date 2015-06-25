@@ -22,14 +22,14 @@ if __name__ == '__main__':
 #   background_map = np.sqrt(data[0]**2 + data[1]**2)
 
 #   fp = footprint.SurveyStack(background_map, fignum=1, projection=H.mollview, coord_plot='C', rot=[0,0],
-#                              config='../footprint.cfg') 
+#                              config='../footprint.cfg')
     fp = footprint.SurveyStack('PLANCK-DUSTPOL', fignum=1, projection=H.mollview, coord_plot='C', rot=[0,0],
-                               config='../footprint.cfg') 
+                               config='../footprint.cfg')
 
-    fp.superimpose_experiment('ACT',color='green')
-    fp.superimpose_experiment('SPT',color='red')
-    fp.superimpose_experiment('POLARBEAR',color='magenta')
-    fp.superimpose_experiment('BICEP2',color='blue')
-    fp.superimpose_experiment('QUIET',color='orange')
+    fp.superimpose_survey('ACT',color='green')
+    fp.superimpose_survey('SPT',color='red')
+    fp.superimpose_survey('POLARBEAR',color='magenta')
+    fp.superimpose_survey('BICEP2',color='blue')
+    fp.superimpose_survey('QUIET',color='orange')
 
     pl.show()
