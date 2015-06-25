@@ -26,7 +26,7 @@ if __name__ == '__main__':
     fp = footprint.SurveyStack('PLANCK-DUST', fignum=1, projection=H.mollview, coord_plot='C', rot=[0,0],
                                config='../footprint.cfg') 
 
-    fp.superimpose_experiment('ACT',color='green')
-    fp.superimpose_experiment('SPT',color='red')
+    fp.superimpose_survey('ACT',color='green')
+    fp.superimpose_survey('SPT',color='red')
 
     pl.show()

@@ -26,9 +26,9 @@ if __name__ == '__main__':
     fp = footprint.SurveyStack('PLANCK-DUSTPOL', fignum=1, projection=H.mollview, coord_plot='C', rot=[0,0],
                                config='../footprint.cfg')
 
-    fp.superimpose_experiment('POLARBEAR',color='magenta')
-    fp.superimpose_experiment('BICEP2',color='blue')
-    fp.superimpose_experiment('SPIDER-90',color='orange')
-    fp.superimpose_experiment('QUIET',color='green')
+    fp.superimpose_survey('POLARBEAR',color='magenta')
+    fp.superimpose_survey('BICEP2',color='blue')
+    fp.superimpose_survey('SPIDER-90',color='orange')
+    fp.superimpose_survey('QUIET',color='green')
 
     pl.show()
