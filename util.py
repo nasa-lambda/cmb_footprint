@@ -391,7 +391,7 @@ def download_url(url, checksum, local_path):
 
     cksum_file = hashlib.md5(open(local_path, 'rb').read()).hexdigest()
     if checksum != cksum_file:
-        print("Remote file checksum does not match cfg checksum")
+        raise ValueError("Remote file checksum does not match cfg checksum:", checksum, cksum_file)
 
     return True
 
