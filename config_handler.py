@@ -346,13 +346,17 @@ class ConfigHandler(object):
         bottom_left = SkyCoord(ra_range[0], dec_range[0])
         top_right = SkyCoord(ra_range[1], dec_range[1])
 
-        corner1 = (top_right.ra.deg, top_right.dec.deg)
-        corner2 = (top_right.ra.deg, bottom_left.dec.deg)
-        corner3 = (bottom_left.ra.deg, bottom_left.dec.deg)
-        corner4 = (bottom_left.ra.deg, top_right.dec.deg)
-        vertices = (corner1, corner2, corner3, corner4)
+#       corner1 = (top_right.ra.deg, top_right.dec.deg)
+#       corner2 = (top_right.ra.deg, bottom_left.dec.deg)
+#       corner3 = (bottom_left.ra.deg, bottom_left.dec.deg)
+#       corner4 = (bottom_left.ra.deg, top_right.dec.deg)
+#       vertices = (corner1, corner2, corner3, corner4)
 
-        hpx_map = util.gen_map_polygon(vertices, self.nside)
+        lonra = [bottom_left.ra.deg, top_right.ra.deg]
+        latra = [bottom_left.dec.deg, top_right.dec.deg]
+
+#       hpx_map = util.gen_map_polygon(vertices, self.nside)
+        hpx_map = util.gen_map_rectangle(lonra, latra, self.nside)
 
         coord = self.config.get(survey_name, 'coord')
 

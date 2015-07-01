@@ -248,10 +248,14 @@ def gen_map_centersize(center, size, nside):
     corner2 = (center[0]+size[0]/2.0, center[1]-size[1]/2.0)
     corner3 = (center[0]-size[0]/2.0, center[1]-size[1]/2.0)
     corner4 = (center[0]-size[0]/2.0, center[1]+size[1]/2.0)
-
+    
     vertices = (corner1, corner2, corner3, corner4)
 
-    hpx_map = gen_map_polygon(vertices, nside)
+    lonra = [center[0]-size[0]/2.0, center[0]+size[0]/2.0]
+    latra = [center[1]-size[1]/2.0, center[1]+size[1]/2.0]
+
+#   hpx_map = gen_map_polygon(vertices, nside)
+    hpx_map = gen_map_rectangle(lonra, latra, nside)
 
     return hpx_map
 
@@ -322,6 +326,50 @@ def gen_map_disc(radec_cen, rad, nside):
 
     hpx_map = np.zeros(H.nside2npix(nside))
     hpx_map[ipix] = 1.0
+
+    return hpx_map
+
+def gen_map_rectangle(lonra, latra, nside):
+    '''Generates a Healpix map with the only non-zero values in the
+    pixels inside a rectangle oriented along the lon/lat lines.
+
+    Parameters
+    ----------
+    lonra : array-like with shape (2,)
+        The range of longitude in degrees
+
+    latra : array-like with shape (2,)
+        The range of latitude in degrees
+
+    nside : int
+        The nside of the output Healpix map
+
+    Returns
+    -------
+        A Healpix map with non-zero values inside the disc
+    '''
+
+#   Make sure we first value is smaller than second value
+    if lonra[1] < lonra[0]:
+        lonra = [lonra[0] - 360.0, lonra[1]]
+
+    npix = H.nside2npix(nside)
+
+    hpx_map = np.zeros(npix)
+
+    ipix = np.arange(npix)
+    theta, phi = H.pix2ang(nside, ipix)
+    
+    lon = np.degrees(phi)
+    lat = 90.0 - np.degrees(theta)
+
+#   Make sure that range of lon matches goes through values on lonra
+    lon[lon > lonra[1]] -= 360.0
+
+    idx = np.all([[lat >= latra[0]], [lat <= latra[1]], [lon >= lonra[0]], [lon <= lonra[1]]], axis=0)
+    idx.shape = (npix,)
+
+    hpx_map[idx] = 1.0
 
     return hpx_map
 
