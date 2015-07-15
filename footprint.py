@@ -298,3 +298,22 @@ class SurveyStack(object):
         self.superimpose_hpxmap(hpx_map, label, color=color,
                                 coord_in=coord)
 
+    def superimpose_rect_outline(self, lonra, latra, color='red',
+            label=None):
+
+        linelon = np.linspace(lonra[0], lonra[1], num=1000)
+        linelat = latra[0]*np.ones_like(linelon)
+        H.projplot(linelon, linelat, '.', lonlat=True, markersize=1)
+
+        linelon = np.linspace(lonra[0], lonra[1], num=1000)
+        linelat = latra[1]*np.ones_like(linelon)
+        H.projplot(linelon, linelat, '.', lonlat=True, markersize=1)
+
+        linelat = np.linspace(latra[0], latra[1], num=1000)
+        linelon = lonra[0]*np.ones_like(linelat)
+        H.projplot(linelon, linelat, '.', lonlat=True, markersize=1)
+
+        linelat = np.linspace(latra[0], latra[1], num=1000)
+        linelon = lonra[1]*np.ones_like(linelat)
+        H.projplot(linelon, linelat, '.', lonlat=True, markersize=1)
+
