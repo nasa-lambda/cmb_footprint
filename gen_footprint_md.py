@@ -9,6 +9,7 @@ try:
 except ImportError:
     import configparser as ConfigParser
 
+
 def gen_markdown():
 
     md_file = 'config_test.md'
@@ -17,10 +18,10 @@ def gen_markdown():
     fn = 'footprint.cfg'
     backgrounds, cmb, cmbpol, lss = process_config(fn)
 
-    f.write('This file is automatically constructed from the configuration ')
-    f.write('file and is meant as an easier way to see what surveys are in ')
-    f.write('the configuration file')
-    f.write('\n')
+    f.write('This page is automatically constructed from the configuration ')
+    f.write('file and is meant as an easier way to see what surveys are ')
+    f.write('included in the configuration file')
+    f.write('\n\n')
 
 #   Write the background table
     f.write('# Backgrounds\n')
@@ -29,14 +30,18 @@ def gen_markdown():
     f.write('configuration file that can be added to the footprint figure ')
     f.write('by inputting a string instead of a Healpix map.\n')
     f.write('\n')
-    f.write('| Experiment | Name | Description |\n')
-    f.write('|------------|------|-------------|\n')
+    f.write('| Experiment | Name | Description | File |\n')
+    f.write('|------------|------|-------------|------|\n')
 
     for tmp in backgrounds:
-        line = '| ' + tmp[0] + ' | ' + tmp[1] + ' | ' + tmp[2] + ' |\n'
+        line = '| ' + tmp[0] + ' | ' + tmp[1] + ' | ' + tmp[2] + ' | '
+        if tmp[4] is None:
+            line += '|\n'
+        else:
+            line += ' [Link](' + tmp[4] + ') |\n'
         line = line.replace('"', '')
         f.write(line)
-    
+
     f.write('\n')
 
 #   Write the CMB intensity table
@@ -45,11 +50,15 @@ def gen_markdown():
     f.write('This next table lists all the surveys associated with CMB ')
     f.write('intensity experiments\n')
     f.write('\n')
-    f.write('| Experiment | Survey | Description |\n')
-    f.write('|------------|--------|-------------|\n')
-    
+    f.write('| Experiment | Survey | Description | File |\n')
+    f.write('|------------|--------|-------------|------|\n')
+
     for tmp in cmb:
-        line = '| ' + tmp[0] + ' | ' + tmp[1] + ' | ' + tmp[2] + ' |\n'
+        line = '| ' + tmp[0] + ' | ' + tmp[1] + ' | ' + tmp[2] + ' | '
+        if tmp[4] is None:
+            line += '|\n'
+        else:
+            line += ' [Link](' + tmp[4] + ') |\n'
         line = line.replace('"', '')
         f.write(line)
 
@@ -61,11 +70,15 @@ def gen_markdown():
     f.write('This next table lists all the surveys associated with CMB ')
     f.write('polarization experiments\n')
     f.write('\n')
-    f.write('| Experiment | Survey | Description |\n')
-    f.write('|------------|--------|-------------|\n')
-    
+    f.write('| Experiment | Survey | Description | File |\n')
+    f.write('|------------|--------|-------------|------|\n')
+
     for tmp in cmbpol:
-        line = '| ' + tmp[0] + ' | ' + tmp[1] + ' | ' + tmp[2] + ' |\n'
+        line = '| ' + tmp[0] + ' | ' + tmp[1] + ' | ' + tmp[2] + ' | '
+        if tmp[4] is None:
+            line += '|\n'
+        else:
+            line += ' [Link](' + tmp[4] + ') |\n'
         line = line.replace('"', '')
         f.write(line)
 
@@ -77,25 +90,27 @@ def gen_markdown():
     f.write('This next table lists all the surveys associated with LSS ')
     f.write('surveys\n')
     f.write('\n')
-    f.write('| Experiment | Survey | Description |\n')
-    f.write('|------------|--------|-------------|\n')
-    
+    f.write('| Experiment | Survey | Description | File |\n')
+    f.write('|------------|--------|-------------|------|\n')
+
     for tmp in lss:
-        line = '| ' + tmp[0] + ' | ' + tmp[1] + ' | ' + tmp[2] + ' |\n'
+        line = '| ' + tmp[0] + ' | ' + tmp[1] + ' | ' + tmp[2] + ' | '
+        if tmp[4] is None:
+            line += '|\n'
+        else:
+            line += ' [Link](' + tmp[4] + ') |\n'
         line = line.replace('"', '')
         f.write(line)
 
     f.write('\n')
 
-
     f.close()
+
 
 def process_config(fn):
 
     config = ConfigParser.ConfigParser()
     config.read(fn)
-
-    output_file = 'readable_config.md'
 
 #   Add the entries to the correct table
     background = []
@@ -104,18 +119,23 @@ def process_config(fn):
     lss = []
 
     for section in config.sections():
-        tableval = config.get(section,'survey_type')
-        descr = config.get(section,'description')
-        citation = config.get(section,'citation')
-        expr_name = config.get(section,'experiment')
+        tableval = config.get(section, 'survey_type')
+        descr = config.get(section, 'description')
+        citation = config.get(section, 'citation')
+        expr_name = config.get(section, 'instrument')
+        try:
+            url = config.get(section, 'url')
+        except:
+            url = None
+
         if tableval == 'background':
-            background.append([expr_name,section,descr,citation])
+            background.append([expr_name, section, descr, citation, url])
         elif tableval == 'cmb':
-            cmb.append([expr_name,section,descr,citation])
+            cmb.append([expr_name, section, descr, citation, url])
         elif tableval == 'cmbpol':
-            cmbpol.append([expr_name,section,descr,citation])
+            cmbpol.append([expr_name, section, descr, citation, url])
         elif tableval == 'lss':
-            lss.append([expr_name,section,descr,citation])
+            lss.append([expr_name, section, descr, citation, url])
 
     return background, cmb, cmbpol, lss
 

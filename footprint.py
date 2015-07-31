@@ -196,7 +196,7 @@ class SurveyStack(object):
 
         size : array-like with shape (2,)
             The length of the edge of the rectangle in degrees
-        
+
         label : string
             The label to put on the colorbar for this survey
 
@@ -271,7 +271,7 @@ class SurveyStack(object):
                                 coord_in=coord_in)
 
     def superimpose_survey(self, survey_name, color='red',
-                               label=None):
+                           label=None):
         '''Superimpose a specific survey whose Healpix footprints we have
         pregenerated and are listed in the configuration file
 
@@ -299,21 +299,43 @@ class SurveyStack(object):
                                 coord_in=coord)
 
     def superimpose_rect_outline(self, lonra, latra, color='red',
-            label=None):
+                                 label=None):
 
         linelon = np.linspace(lonra[0], lonra[1], num=1000)
         linelat = latra[0]*np.ones_like(linelon)
-        H.projplot(linelon, linelat, '.', lonlat=True, markersize=1)
+        H.projplot(linelon, linelat, '.', lonlat=True, markersize=1,
+                   color=color)
 
         linelon = np.linspace(lonra[0], lonra[1], num=1000)
         linelat = latra[1]*np.ones_like(linelon)
-        H.projplot(linelon, linelat, '.', lonlat=True, markersize=1)
+        H.projplot(linelon, linelat, '.', lonlat=True, markersize=1,
+                   color=color)
 
         linelat = np.linspace(latra[0], latra[1], num=1000)
         linelon = lonra[0]*np.ones_like(linelat)
-        H.projplot(linelon, linelat, '.', lonlat=True, markersize=1)
+        H.projplot(linelon, linelat, '.', lonlat=True, markersize=1,
+                   color=color)
 
         linelat = np.linspace(latra[0], latra[1], num=1000)
         linelon = lonra[1]*np.ones_like(linelat)
-        H.projplot(linelon, linelat, '.', lonlat=True, markersize=1)
+        H.projplot(linelon, linelat, '.', lonlat=True, markersize=1,
+                   color=color)
 
+        add_cb = False
+        if add_cb:
+#           First add the new colorbar axis to the figure
+            im0 = self.fig.axes[-1].get_images()[0]
+            box = self.fig.axes[0].get_position()
+            ax_color = pl.axes([len(self.cbs), box.y0-0.1, 0.05, 0.05])
+            self.fig.colorbar(im0, cax=ax_color, orientation='horizontal',
+                              label=label, values=[2, 3])
+
+            self.cbs.append(ax_color)
+
+#           Readjust the location of every colorbar
+            ncb = len(self.cbs)
+
+            left = 1.0 / (2.0*ncb) - 0.025
+            for ax_tmp in self.cbs:
+                ax_tmp.set_position([left, box.y0-0.1, 0.05, 0.05])
+                left += 1.0 / ncb

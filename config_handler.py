@@ -29,6 +29,7 @@ from astropy.coordinates import SkyCoord
 
 import cmb_footprint.util as util
 
+
 class ConfigHandler(object):
     '''Class that handles reading the configuration file and generating the
     footprints described by the configuration file'''
@@ -140,8 +141,8 @@ class ConfigHandler(object):
             download_file = False
             local_path = os.path.join(self.map_path, fn_tmp)
             if os.path.exists(local_path):
-                cksum_file = hashlib.md5(open(local_path, 'rb').read()).hexdigest()
-                if cksum_cfg != cksum_file:
+                cksum = hashlib.md5(open(local_path, 'rb').read()).hexdigest()
+                if cksum_cfg != cksum:
                     download_file = True
             else:
                 download_file = True
@@ -393,8 +394,8 @@ class ConfigHandler(object):
         for component in components[1:]:
             tmp_map, coord_tmp = self.load_survey(component)
             if coord_tmp != coord:
-#               Could we do something to rotate the maps using Healpy?
-                raise ValueError('All maps in combination must be in the same coordinate system')
+                raise ValueError('''All maps in combination must be in the
+                                 same coordinate system''')
             hpx_map += tmp_map
 
         return hpx_map, coord

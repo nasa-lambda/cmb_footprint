@@ -57,7 +57,24 @@ every time the code is run.
 
 There are several different ways to input surveys to the configuration
 file. Here we will go over all the different types. For each types I will
-list the different keys that must go in the configuration file for that entry. The regions are specified as strings in the standard astropy [coordinate format](http://astropy.readthedocs.org/en/latest/coordinates/).
+list the different keys that must go in the configuration file for that entry. The 
+regions are specified as strings in the standard astropy [coordinate format](http://astropy.readthedocs.org/en/latest/coordinates/).
+
+### Common Keys ###
+
+These are keys that are common to all the different types of configuration file entries.
+
+* **coord** : 'C', 'E', or 'G' describing the coordinate system of the input map or 
+the coordinate system of the input values.
+* **instrument** : Instrument with which this data comes from. Multiple entries can
+have the same instrument.
+* **survey_type** : Either 'background', 'cmb', 'cmbpol', or 'lss'. Used to separate 
+entries into different tables when we generate a markdown file listing all the 
+entries in the configuration file.
+* **citation** : Citation describing how we got our survey footprint for the given 
+experiment. Possible entries include a link to a file that we got our data form or 
+and link to a paper from which we pulled values.
+
 
 ### Healpix File ###
 
@@ -67,7 +84,6 @@ to download the file from LAMBDA
 
 * **handler** : hpx_file
 * **file** : filename of the file
-* **coord** : 'C', 'E', or 'G' describing the coordinate system of the map
 * **checksum** : The MD5 checksum of the file. It the checksum does not match the
 checksum of the local file, it will attempt to download it from LAMBDA.
 
@@ -78,7 +94,6 @@ This generates a disc footprint given a location and radius for the disc.
 * **handler** : disc
 * **center** : The center of the disc in lon,lat in human readable form
 (i.e. 4h12m,-12d4m). Values must be separated by a comma
-* **coord** : 'C', 'E', or 'G' describing the coordinate system of the input values
 * **radius** : The radius of the disc in human readable form
 
 ### Polygon ###
@@ -89,7 +104,6 @@ the number of vertices, but the resulting polygon must be convex.
 * **handler** : polygon
 * **vertex1**, **vertex2**, ... : Lon,lat location of the vertex. The lon,lat values
 must be separated by a comma
-* **coord** : 'C', 'E', or 'G' describing the coordinate system of the input values
 
 ### Rectangle ###
 
@@ -101,7 +115,6 @@ cartesian like projection where the x- and y-axes are ra/dec.
 * **handler** : rectangle
 * **center** : The center lon,lat of the rectangle.
 * **size** : The length of the sides of the rectangle.
-* **coord** : 'C', 'E', or 'G' describing the coordinate system of the input values
 
 ### Combination ###
 
@@ -118,4 +131,4 @@ will be combined. Names must be separated by a comma.
 
 ## Who do I talk to? ##
 
-* Nathan Miller
+* Nathan Miller (nathan.j.miller@nasa.gov)
