@@ -30,8 +30,8 @@ def gen_markdown():
     f.write('configuration file that can be added to the footprint figure ')
     f.write('by inputting a string instead of a Healpix map.\n')
     f.write('\n')
-    f.write('| Experiment | Name | Description | File |\n')
-    f.write('|------------|------|-------------|------|\n')
+    f.write('| Experiment | ID | Description | File |\n')
+    f.write('|------------|----|-------------|------|\n')
 
     for tmp in backgrounds:
         line = '| ' + tmp[0] + ' | ' + tmp[1] + ' | ' + tmp[2] + ' | '
@@ -50,8 +50,8 @@ def gen_markdown():
     f.write('This next table lists all the surveys associated with CMB ')
     f.write('intensity experiments\n')
     f.write('\n')
-    f.write('| Experiment | Survey | Description | File |\n')
-    f.write('|------------|--------|-------------|------|\n')
+    f.write('| Experiment | ID | Description | File |\n')
+    f.write('|------------|----|-------------|------|\n')
 
     for tmp in cmb:
         line = '| ' + tmp[0] + ' | ' + tmp[1] + ' | ' + tmp[2] + ' | '
@@ -70,8 +70,8 @@ def gen_markdown():
     f.write('This next table lists all the surveys associated with CMB ')
     f.write('polarization experiments\n')
     f.write('\n')
-    f.write('| Experiment | Survey | Description | File |\n')
-    f.write('|------------|--------|-------------|------|\n')
+    f.write('| Experiment | ID | Description | File |\n')
+    f.write('|------------|----|-------------|------|\n')
 
     for tmp in cmbpol:
         line = '| ' + tmp[0] + ' | ' + tmp[1] + ' | ' + tmp[2] + ' | '
@@ -90,8 +90,8 @@ def gen_markdown():
     f.write('This next table lists all the surveys associated with LSS ')
     f.write('surveys\n')
     f.write('\n')
-    f.write('| Experiment | Survey | Description | File |\n')
-    f.write('|------------|--------|-------------|------|\n')
+    f.write('| Experiment | ID | Description | File |\n')
+    f.write('|------------|----|-------------|------|\n')
 
     for tmp in lss:
         line = '| ' + tmp[0] + ' | ' + tmp[1] + ' | ' + tmp[2] + ' | '
