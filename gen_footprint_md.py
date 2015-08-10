@@ -12,7 +12,7 @@ except ImportError:
 
 def gen_markdown():
 
-    md_file = 'config_test.md'
+    md_file = 'config.md'
     f = open(md_file, 'w')
 
     fn = 'footprint.cfg'
