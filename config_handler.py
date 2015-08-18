@@ -391,11 +391,24 @@ class ConfigHandler(object):
         components = [tmp.strip() for tmp in components]
 
         hpx_map, coord = self.load_survey(components[0])
+
         for component in components[1:]:
             tmp_map, coord_tmp = self.load_survey(component)
+
             if coord_tmp != coord:
                 raise ValueError('''All maps in combination must be in the
                                  same coordinate system''')
+            if len(tmp_map) != len(hpx_map):
+                nside_tmp = H.npix2nside(len(tmp_map))
+                nside_hpx = H.npix2nside(len(hpx_map))
+
+                if nside_tmp > nside_hpx:
+                    hpx_map = H.ud_grade(hpx_map,nside_tmp)
+                else:
+                    tmp_map = H.ud_grade(tmp_map,nside_hpx)
+
             hpx_map += tmp_map
+
+        hpx_map /= np.max(hpx_map)
 
         return hpx_map, coord
