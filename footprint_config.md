@@ -46,14 +46,20 @@ This next table lists all the surveys associated with CMB polarization experimen
 
 | Experiment | ID | Description | File |
 |------------|----|-------------|------|
-| QUIET | QUIET-CMB1 | Plot of the CMB1 patch for QUIET. Positions and sizes taken from paper. | |
-| QUIET | QUIET-CMB2 | Plot of the CMB2 patch for QUIET. Positions and sizes taken from paper. | |
-| QUIET | QUIET-CMB3 | Plot of the CMB3 patch for QUIET. Positions and sizes taken from paper. | |
-| QUIET | QUIET-CMB4 | Plot of the CMB4 patch for QUIET. Positions and sizes taken from paper. | |
-| QUIET | QUIET-CMB | Plot of all the CMB patches for QUIET. Positions and sizes taken from paper. | |
+| QUIET | QUIET-Q-CMB-1 | Plot of the CMB-1 field for QUIET's Q band. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/QUIET_Qband_CMB-1_hitmap.fits.gz) |
+| QUIET | QUIET-Q-CMB-2 | Plot of the CMB-2 field for QUIET's Q band. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/QUIET_Qband_CMB-2_hitmap.fits.gz) |
+| QUIET | QUIET-Q-CMB-3 | Plot of the CMB-3 field for QUIET's Q band. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/QUIET_Qband_CMB-3_hitmap.fits.gz) |
+| QUIET | QUIET-Q-CMB-4 | Plot of the CMB-4 field for QUIET's Q band. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/QUIET_Qband_CMB-4_hitmap.fits.gz) |
+| QUIET | QUIET-W-CMB-1 | Plot of the CMB-1 field for QUIET's W band. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/QUIET_Wband_CMB-1_hitmap.fits.gz) |
+| QUIET | QUIET-W-CMB-2 | Plot of the CMB-2 field for QUIET's W band. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/QUIET_Wband_CMB-2_hitmap.fits.gz) |
+| QUIET | QUIET-W-CMB-3 | Plot of the CMB-3 field for QUIET's W band. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/QUIET_Wband_CMB-3_hitmap.fits.gz) |
+| QUIET | QUIET-W-CMB-4 | Plot of the CMB-4 field for QUIET's W band. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/QUIET_Wband_CMB-4_hitmap.fits.gz) |
+| QUIET | QUIET-Q-CMB | Plot of all the CMB patches for QUIET Q band. | |
+| QUIET | QUIET-W-CMB | Plot of all the CMB patches for QUIET W band. | |
 | QUIET | QUIET-Q-GAL | Plot of all the galaxy patches for QUIET Q band. | |
 | QUIET | QUIET-W-GAL | Plot of all the galaxy patches for QUIET W band. | |
-| QUIET | QUIET | Plot of all the fields for QUIET (CMB+galaxy). Positions and sizes for CMB taken from paper. Galaxy is W band. | |
+| QUIET | QUIET-Q | Plot of all the fields for QUIET (CMB+galaxy) Q band. | |
+| QUIET | QUIET-W | Plot of all the fields for QUIET (CMB+galaxy) W band. | |
 | QUIET | QUIET-Q-G-1 | Plot of the G-1 galaxy field for QUIET's Q band. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/QUIET_Qband_G-1_hitmap.fits.gz) |
 | QUIET | QUIET-Q-G-2 | Plot of the G-2 galaxy field for QUIET's Q band. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/QUIET_Qband_G-2_hitmap.fits.gz) |
 | QUIET | QUIET-W-G-1 | Plot of the G-1 galaxy field for QUIET's W band. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/QUIET_Wband_G-1_hitmap.fits.gz) |

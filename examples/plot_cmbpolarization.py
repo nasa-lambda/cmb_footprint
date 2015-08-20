@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     fp.superimpose_survey('BICEP2',color='blue')
     fp.superimpose_survey('SPIDER-90',color='orange')
-    fp.superimpose_survey('QUIET-Q',color='green')
+    fp.superimpose_survey('QUIET-Q',color='green', label='QUIET')
     fp.superimpose_survey('POLARBEAR',color='magenta')
 
     pl.show()
