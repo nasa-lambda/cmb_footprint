@@ -123,7 +123,8 @@ multiple other surveys listed in the configuration file. This is used so
 that a single survey can have multiple entries for different patches, so
 we can choose to plot a single patch or multiple patches without the code
 thinking they are different surveys. All component maps must have the same
-coordinate system because we just sum the Healpix maps together.
+coordinate system because we just sum the Healpix maps together. Additionally, 
+all combination maps are normalized to a maximum value of 1.
 
 * **handler** : combination
 * **components** : The names of the other entries in the configuration file that
