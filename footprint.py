@@ -18,6 +18,7 @@ import numpy as np
 import pylab as pl
 import healpy as H
 import matplotlib.cm as cm
+import visufunc_ext as vf
 
 import cmb_footprint.util as util
 from cmb_footprint.config_handler import ConfigHandler
@@ -30,7 +31,7 @@ class SurveyStack(object):
     '''
 
     def __init__(self, background, xsize=1600, nside=None, fignum=None,
-                 projection=H.mollview, coord_bg='G', coord_plot='C',
+                 projection='mollweide', coord_bg='G', coord_plot='C',
                  rot=None, partialmap=False, latra=None, lonra=None,
                  config='footprint.cfg', map_path=None,
                  download_config=False):
@@ -42,8 +43,20 @@ class SurveyStack(object):
         self.latra = latra
         self.lonra = lonra
         self.rot = rot
-        self.mapview = projection
         self.cbs = []
+        
+        if projection == 'mollweide':
+            self.mapview = H.mollview
+            self.mapcontour = vf.mollcontour
+        elif projection == 'cartesian':
+            self.mapview = H.cartview
+            self.mapcontour = vf.cartcontour
+        elif projection == 'orthographic':
+            self.mapview = H.orthview
+            self.mapcontour = vf.orthcontour
+        elif projection == 'gnomonic':
+            self.mapview = H.gnomview
+            self.mapcontour = vf.gnomcontour
 
         if map_path is None:
             full_path = inspect.getfile(inspect.currentframe())
@@ -56,6 +69,7 @@ class SurveyStack(object):
 #       Could also just call load_survey which will call get_background
         if isinstance(background, str):
             background, coord_bg = self.config.load_survey(background)
+            background = background[0]
 
         if nside is None:
             nside = H.npix2nside(len(background))
@@ -290,7 +304,8 @@ class SurveyStack(object):
             the label.
         '''
 
-        hpx_map, coord = self.config.load_survey(survey_name)
+        hpx_maps, coord = self.config.load_survey(survey_name)
+        hpx_map = self.combine_maps(hpx_maps)
 
         if label is None:
             label = survey_name
@@ -339,3 +354,190 @@ class SurveyStack(object):
             for ax_tmp in self.cbs:
                 ax_tmp.set_position([left, box.y0-0.1, 0.05, 0.05])
                 left += 1.0 / ncb
+
+    def superimpose_survey_outline(self, survey_name, color='red',
+                                   label=None):
+        
+        vtxs, coord = self.config.load_survey_outline(survey_name)
+
+        if label is None:
+            label = survey_name
+
+        self.superimpose_polygon_outline(vtxs, label, color=color,
+                                         coord_in=coord)
+
+    def superimpose_survey_contour(self, survey_name, color='red',
+                                   label=None):
+        
+        hpx_maps, coord = self.config.load_survey(survey_name)
+
+        if label is None:
+            label = survey_name
+
+        for hpx_map in hpx_maps[:-1]:
+            self.superimpose_hpxmap_contour(hpx_map, label, color=color,
+                                            coord_in=coord, add_cb=False)
+
+        self.superimpose_hpxmap_contour(hpx_maps[-1], label, color=color,
+                                        coord_in=coord, add_cb=True)
+        
+    def superimpose_hpxmap_contour(self, hpx_map, label, color='red',
+                                   coord_in='C', add_cb=True):
+        
+        
+        idx_nan = (hpx_map == 0)
+       
+#       Smoothing makes it more likely that contours don't have holes in them
+#        hpx_map = H.smoothing(hpx_map, fwhm=np.radians(30.0/60.0),
+#                              verbose=False)
+        
+        hpx_map /= np.max(hpx_map)
+        hpx_map[idx_nan] = np.NaN
+
+        cm1 = util.get_color_map(color)
+
+        coord = [coord_in, self.coord_plot]
+
+        level = self.determine_level(hpx_map,0.8)
+
+        if self.partialmap:
+#           Colorbar is added to this and then deleted to make sure there is
+#           room at the bottom of the map for the labels. Margins are to make
+#           sure the title is not partially off the figure for a square map
+            sub = (1, 1, 1)
+            margins = (0.01, 0.025, 0.01, 0.03)
+            map_tmp = H.cartcontour(hpx_map, 5, title='', xsize=1600, coord=coord,
+                                 fig=self.fig.number, cmap=cm1, notext=True,
+                                 flip='astro', rot=self.rot, latra=self.latra,
+                                 lonra=self.lonra, sub=sub, margins=margins,
+                                 return_projected_map=True)
+            idx = np.isfinite(map_tmp)
+            if add_cb:
+                add_cb = len(map_tmp[idx]) > 0
+            self.fig.delaxes(self.fig.axes[-1])
+        else:
+            self.mapcontour(hpx_map, [-0.1,level], title='', xsize=1600, coord=coord,
+                         cbar=None, fig=self.fig.number, cmap=cm1,
+                         notext=True, flip='astro', rot=self.rot)
+
+        if add_cb:
+    #       Temporary axis with a Healpix map so I can get the correct color 
+    #       for the colorbar
+            cm1 = util.get_color_map(color)
+            coord = [coord_in, self.coord_plot]
+            hpx_map = np.ones(12*32**2)
+            self.mapview(hpx_map, title='', xsize=1600, coord=coord,
+                        cbar=None, fig=self.fig.number, cmap=cm1,
+                        notext=True, flip='astro', rot=self.rot)
+
+#           First add the new colorbar axis to the figure
+            im0 = self.fig.axes[-1].get_images()[0]
+            box = self.fig.axes[0].get_position()
+            ax_color = pl.axes([len(self.cbs), box.y0-0.1, 0.05, 0.05])
+            self.fig.colorbar(im0, cax=ax_color, orientation='horizontal',
+                              label=label, values=[2, 3])
+
+            self.cbs.append(ax_color)
+            
+            self.fig.delaxes(self.fig.axes[-2])
+
+#           Readjust the location of every colorbar
+            ncb = len(self.cbs)
+
+            left = 1.0 / (2.0*ncb) - 0.025
+            for ax_tmp in self.cbs:
+                ax_tmp.set_position([left, box.y0-0.1, 0.05, 0.05])
+                left += 1.0 / ncb
+    
+
+    def superimpose_polygon_outline(self, vertices, label, color='red',
+                                    coord_in='C'):
+
+        lons = vertices[:,0]
+        lons = np.append(lons, lons[0])
+
+        lats = vertices[:,1]
+        lats = np.append(lats, lats[0])
+
+        nvertices = len(lons)
+
+#       Loop over all vertices and generate lines between adjacent vertices
+#       in list
+        linelon = np.array([])
+        linelat = np.array([])
+        for i in range(nvertices-1):
+            tmplon = np.linspace(lons[i], lons[i+1], num=1000)
+            tmplat = np.linspace(lats[i], lats[i+1], num=1000)
+            linelon = np.append(linelon, tmplon)
+            linelat = np.append(linelat, tmplat)
+
+        H.projplot(linelon, linelat, lonlat=True, markersize=1,
+                   color=color)
+
+#       Sometimes this doesn't plot all lines
+#       H.projplot(lons, lats, lonlat=True, markersize=1, color=color)
+ 
+        add_cb = True
+        if add_cb:
+#           Temporary axis with a Healpix map so I can get the correct color 
+#           for the colorbar
+            cm1 = util.get_color_map(color)
+            coord = [coord_in, self.coord_plot]
+            hpx_map = np.ones(12*32**2)
+            self.mapview(hpx_map, title='', xsize=1600, coord=coord,
+                        cbar=None, fig=self.fig.number, cmap=cm1,
+                        notext=True, flip='astro', rot=self.rot)
+
+#           First add the new colorbar axis to the figure
+            im0 = self.fig.axes[-1].get_images()[0]
+            box = self.fig.axes[0].get_position()
+            ax_color = pl.axes([len(self.cbs), box.y0-0.1, 0.05, 0.05])
+            self.fig.colorbar(im0, cax=ax_color, orientation='horizontal',
+                              label=label, values=[2, 3])
+
+            self.cbs.append(ax_color)
+           
+#           Delete the temporary map
+            self.fig.delaxes(self.fig.axes[-2])
+
+#           Readjust the location of every colorbar
+            ncb = len(self.cbs)
+
+            left = 1.0 / (2.0*ncb) - 0.025
+            for ax_tmp in self.cbs:
+                ax_tmp.set_position([left, box.y0-0.1, 0.05, 0.05])
+                left += 1.0 / ncb
+
+    def combine_maps(self, hpx_maps):
+        '''Code to combine an array of maps.
+
+        Notes
+        -----
+        This is called when we plot images of the surveys. It is not called
+        when we plot outlines
+        '''
+
+        map_comb = np.zeros_like(hpx_maps[0])
+
+        for hpx_map in hpx_maps:
+            map_comb += hpx_map
+
+        map_comb /= np.max(map_comb)
+
+        return map_comb
+
+    def determine_level(self, hpx_map, obs_frac):
+        '''Determine the contour level than contains the obs_frac of the area'''
+
+
+        idx = hpx_map > 0
+
+        vals = hpx_map[idx]
+
+        nvals = len(vals)
+
+        vals_sort = np.sort(vals)
+    
+        level = vals_sort[int((1-obs_frac)*(nvals-1))]
+
+        return level 

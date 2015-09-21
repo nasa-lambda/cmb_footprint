@@ -108,6 +108,14 @@ class ConfigHandler(object):
 
         return hpx_map, coord
 
+    def load_survey_outline(self, survey_name):
+
+        handler = self.config.get(survey_name, 'handler')
+        func = getattr(self, 'get_'+handler+'_outline')
+        vtxs, coord = func(survey_name)
+
+        return vtxs, coord
+
     def _download_files(self, survey_name):
         '''Return the local paths to the files associated with a survey.
         If the files do not exists or their MD5 checksums do not match what is
@@ -182,7 +190,7 @@ class ConfigHandler(object):
             tmp_map = H.read_map(fn_tmp, verbose=False)
             hpx_map += H.ud_grade(tmp_map, nside)
 
-        return hpx_map, coord
+        return [hpx_map], coord
 
     def get_polygon(self, survey_name):
         '''Generates a healpix map for a given survey given vertices of
@@ -232,7 +240,7 @@ class ConfigHandler(object):
 
         hpx_map = util.gen_map_polygon(vtxs, self.nside)
 
-        return hpx_map, coord
+        return [hpx_map], coord
 
     def get_disc(self, survey_name):
         '''Generates a healpix map for a given survey given a center point
@@ -272,7 +280,7 @@ class ConfigHandler(object):
 
         hpx_map = util.gen_map_disc(center, radius, self.nside)
 
-        return hpx_map, coord
+        return [hpx_map], coord
 
     def get_rectangle(self, survey_name):
         '''Generates a healpix map for a given survey given a center point
@@ -313,7 +321,7 @@ class ConfigHandler(object):
 
         hpx_map = util.gen_map_centersize(center, length, self.nside)
 
-        return hpx_map, coord
+        return [hpx_map], coord
 
     def get_rectangle_bounds(self, survey_name):
         '''Generates a healpix map for a given survey given a range of
@@ -361,7 +369,7 @@ class ConfigHandler(object):
 
         coord = self.config.get(survey_name, 'coord')
 
-        return hpx_map, coord
+        return [hpx_map], coord
 
     def get_combination(self, survey_name):
         '''Generates a healpix map for a given survey that is a
@@ -390,25 +398,80 @@ class ConfigHandler(object):
         components = self.config.get(survey_name, 'components').split(',')
         components = [tmp.strip() for tmp in components]
 
-        hpx_map, coord = self.load_survey(components[0])
+        hpx_maps, coord = self.load_survey(components[0])
+        nside_hpx = H.npix2nside(len(hpx_maps[0]))
 
         for component in components[1:]:
-            tmp_map, coord_tmp = self.load_survey(component)
+            tmp_maps, coord_tmp = self.load_survey(component)
 
             if coord_tmp != coord:
                 raise ValueError('''All maps in combination must be in the
                                  same coordinate system''')
-            if len(tmp_map) != len(hpx_map):
+            for tmp_map in tmp_maps:
                 nside_tmp = H.npix2nside(len(tmp_map))
-                nside_hpx = H.npix2nside(len(hpx_map))
 
                 if nside_tmp > nside_hpx:
-                    hpx_map = H.ud_grade(hpx_map,nside_tmp)
-                else:
-                    tmp_map = H.ud_grade(tmp_map,nside_hpx)
+                    nside_hpx = nside_tmp
+            
+                hpx_maps.append(tmp_map)
 
-            hpx_map += tmp_map
+        nmaps = len(hpx_maps)
+        for i in range(nmaps):
+            hpx_maps[i] = H.ud_grade(hpx_maps[i],nside_hpx)
 
-        hpx_map /= np.max(hpx_map)
+        return hpx_maps, coord
 
-        return hpx_map, coord
+    def get_polygon_outline(self, survey_name):
+
+        lons = []
+        lats = []
+
+        i = 1
+        while True:
+            radec_point = 'vertex'+str(i)
+            try:
+                radec_val = self.config.get(survey_name, radec_point)
+            except ConfigParser.NoOptionError:
+                break
+
+            lonlat_val = radec_val.split(',')
+            lonlat_val = [tmp.strip() for tmp in lonlat_val]
+            isneg = lonlat_val[0][0] is '-'
+            lonlat_val = SkyCoord(lonlat_val[0], lonlat_val[1])
+
+            tmp = lonlat_val.ra.deg
+            if isneg:
+                tmp -= 360.0
+                
+            lons.append(tmp)
+            lats.append(lonlat_val.dec.deg)
+            i += 1
+
+        vtxs = np.transpose([lons, lats])
+
+        coord = self.config.get(survey_name, 'coord')
+
+        return vtxs, coord
+
+    def get_polygon_file_outline(self, survey_name):
+
+        lons = []
+        lats = []
+
+        fns = self._download_files(survey_name)
+        fn = fns[0]
+
+        try:
+            data = np.loadtxt(fn)
+        except:
+            data = np.loadtxt(fn, delimiter=',')
+
+        lons = data[:,0]
+        lats = data[:,1]
+        npts = len(lons)
+
+        vtxs = np.transpose([lons, lats])
+
+        coord = self.config.get(survey_name, 'coord')
+
+        return vtxs, coord
