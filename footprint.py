@@ -50,13 +50,13 @@ class SurveyStack(object):
             self.mapcontour = vf.mollcontour
         elif projection == 'cartesian':
             self.mapview = H.cartview
-            self.mapcontour = vf.cartcontour
+            #self.mapcontour = vf.cartcontour
         elif projection == 'orthographic':
             self.mapview = H.orthview
-            self.mapcontour = vf.orthcontour
+            #self.mapcontour = vf.orthcontour
         elif projection == 'gnomonic':
             self.mapview = H.gnomview
-            self.mapcontour = vf.gnomcontour
+            #self.mapcontour = vf.gnomcontour
 
         if map_path is None:
             full_path = inspect.getfile(inspect.currentframe())
@@ -295,7 +295,7 @@ class SurveyStack(object):
             Name of survey. Valid values are section names in the
             configuration file.
 
-        color : string or array-like with shape (3,)
+        color : string or array-like with shape (3,), optional
             The color to use when overlaying the survey footprint. Either a
             string or rgb triplet.
 
@@ -313,61 +313,68 @@ class SurveyStack(object):
         self.superimpose_hpxmap(hpx_map, label, color=color,
                                 coord_in=coord)
 
-    def superimpose_rect_outline(self, lonra, latra, color='red',
-                                 label=None):
-
-        linelon = np.linspace(lonra[0], lonra[1], num=1000)
-        linelat = latra[0]*np.ones_like(linelon)
-        H.projplot(linelon, linelat, '.', lonlat=True, markersize=1,
-                   color=color)
-
-        linelon = np.linspace(lonra[0], lonra[1], num=1000)
-        linelat = latra[1]*np.ones_like(linelon)
-        H.projplot(linelon, linelat, '.', lonlat=True, markersize=1,
-                   color=color)
-
-        linelat = np.linspace(latra[0], latra[1], num=1000)
-        linelon = lonra[0]*np.ones_like(linelat)
-        H.projplot(linelon, linelat, '.', lonlat=True, markersize=1,
-                   color=color)
-
-        linelat = np.linspace(latra[0], latra[1], num=1000)
-        linelon = lonra[1]*np.ones_like(linelat)
-        H.projplot(linelon, linelat, '.', lonlat=True, markersize=1,
-                   color=color)
-
-        add_cb = False
-        if add_cb:
-#           First add the new colorbar axis to the figure
-            im0 = self.fig.axes[-1].get_images()[0]
-            box = self.fig.axes[0].get_position()
-            ax_color = pl.axes([len(self.cbs), box.y0-0.1, 0.05, 0.05])
-            self.fig.colorbar(im0, cax=ax_color, orientation='horizontal',
-                              label=label, values=[2, 3])
-
-            self.cbs.append(ax_color)
-
-#           Readjust the location of every colorbar
-            ncb = len(self.cbs)
-
-            left = 1.0 / (2.0*ncb) - 0.025
-            for ax_tmp in self.cbs:
-                ax_tmp.set_position([left, box.y0-0.1, 0.05, 0.05])
-                left += 1.0 / ncb
-
     def superimpose_survey_outline(self, survey_name, color='red',
                                    label=None):
+        '''Superimpose an outline of a survey
+
+        Parameters
+        ----------
+        survey_name : string
+            The name of the survey in the configuration file
+
+        color : string or array-like with shape (3,), optional
+            The color to use when overlaying the survey footprint. Either a
+            string or rgb triplet. Default = 'red'
+
+        label : string, optional
+            The name to use when labeling this survey on the footprint. 
+            If not input, we will use the survey name.
+        
+        Notes
+        -----
+        This function is for survey footprints that are defined in the
+        configuration file as opposed loading a healpix map
+        '''
         
         vtxs, coord = self.config.load_survey_outline(survey_name)
 
         if label is None:
             label = survey_name
 
+        if type(coord) is list:
+            for v1, c1 in zip(vtxs[:-1],coord[:-1]):
+                self.superimpose_polygon_outline(v1, label, color=color,
+                                                 coord_in=c1, add_cb=False)
+            vtxs = vtxs[-1]
+            coord = coord[-1]
+
         self.superimpose_polygon_outline(vtxs, label, color=color,
                                          coord_in=coord)
 
     def superimpose_survey_contour(self, survey_name, color='red',
-                                   label=None):
+                                   label=None, frac=0.85):
+        '''Superimpose an outline of a survey.
+
+        Parameters
+        ----------
+        survey_name : string
+            The name of the survey in the configuration file
+
+        color : string or array-like with shape (3,), optional
+            The color to use when overlaying the survey footprint. Either a
+            string or rgb triplet. Default = 'red'
+
+        label : string, optional
+            The name to use when labeling this survey on the footprint. 
+            If not input, we will use the survey name.
+
+        Notes
+        -----
+        This function is for entries that load Healpix maps. We draw 
+        contours instead of plotting an image of the map. For entries that 
+        are not Healpix maps, but define the survey region, try 
+        superimpose_survey_outline(...)
+        '''
         
         hpx_maps, coord = self.config.load_survey(survey_name)
 
@@ -379,12 +386,31 @@ class SurveyStack(object):
                                             coord_in=coord, add_cb=False)
 
         self.superimpose_hpxmap_contour(hpx_maps[-1], label, color=color,
-                                        coord_in=coord, add_cb=True)
+                                        coord_in=coord, add_cb=True, frac=frac)
         
     def superimpose_hpxmap_contour(self, hpx_map, label, color='red',
-                                   coord_in='C', add_cb=True):
-        
-        
+                                   coord_in='C', add_cb=True, frac=0.85):
+        '''Superimpose a contour of an input healpix map.
+
+        Parameters
+        ----------
+        hpx_map : array-like
+            The input healpix ma[
+
+        label : string
+            The name to use as a label for the input map
+
+        color : string or array-like with shape (3,), optional
+            The color to use when overlaying the survey footprint. Either a
+            string or rgb triplet. Default = 'red'
+
+        coord_in : 'C', 'E', or 'G', optional
+            The coordinate system of the input map. Default = 'C'.
+
+        add_cb : boolean, optional
+            Whether to add a colorbar labeling the input map. Default = true.
+        '''
+ 
         idx_nan = (hpx_map == 0)
        
 #       Smoothing makes it more likely that contours don't have holes in them
@@ -398,7 +424,7 @@ class SurveyStack(object):
 
         coord = [coord_in, self.coord_plot]
 
-        level = self.determine_level(hpx_map,0.8)
+        level = self.determine_level(hpx_map, frac)
 
         if self.partialmap:
 #           Colorbar is added to this and then deleted to make sure there is
@@ -451,7 +477,27 @@ class SurveyStack(object):
     
 
     def superimpose_polygon_outline(self, vertices, label, color='red',
-                                    coord_in='C'):
+                                    coord_in='C', add_cb=True):
+        '''Superimpose an outline of a survey given input vertices
+
+        Parameters
+        ----------
+        vertices: array-like (nvtxs, 2)
+            The vertices of the polygon
+
+        label : string
+            The label for the survey
+
+        color : string or array-like with shape (3,)
+            The color to use when overlaying the survey footprint. Either a
+            string or rgb triplet.
+
+        coord_in : 'C', 'E', or 'G'
+            The coordinate system for the input vertices
+
+        add_cb : boolean
+            Whether to add a colorbar corresponding to this polygon or not
+        '''
 
         lons = vertices[:,0]
         lons = np.append(lons, lons[0])
@@ -462,7 +508,7 @@ class SurveyStack(object):
         nvertices = len(lons)
 
 #       Loop over all vertices and generate lines between adjacent vertices
-#       in list
+#       in list. This is to ensure the lines are drawn.
         linelon = np.array([])
         linelat = np.array([])
         for i in range(nvertices-1):
@@ -474,10 +520,6 @@ class SurveyStack(object):
         H.projplot(linelon, linelat, lonlat=True, markersize=1,
                    color=color)
 
-#       Sometimes this doesn't plot all lines
-#       H.projplot(lons, lats, lonlat=True, markersize=1, color=color)
- 
-        add_cb = True
         if add_cb:
 #           Temporary axis with a Healpix map so I can get the correct color 
 #           for the colorbar
@@ -511,6 +553,11 @@ class SurveyStack(object):
     def combine_maps(self, hpx_maps):
         '''Code to combine an array of maps.
 
+        Parameters
+        ----------
+        hpx_maps : list
+            A list of healpix maps we want to combine into a single map
+
         Notes
         -----
         This is called when we plot images of the surveys. It is not called
@@ -526,18 +573,53 @@ class SurveyStack(object):
 
         return map_comb
 
-    def determine_level(self, hpx_map, obs_frac):
-        '''Determine the contour level than contains the obs_frac of the area'''
+    def determine_level(self, hpx_map, obs_frac, time=True):
+        '''Determine the contour level than contains the obs_frac of the total 
+        observation time.
 
+        Parameters
+        ----------
+        hpx_map : array-like
+            The input healpix map. This should be a survey footprint of a 
+            single patch.
+
+        obs_frac: float
+            The fraction of observation time that we want the contour to enclose.
+
+        time : boolean, optional
+            If true, obs_frac is fraction of observation time. If false, obs_frac is fraction 
+            of observation area. Default = True
+        '''
 
         idx = hpx_map > 0
 
         vals = hpx_map[idx]
-
+        
         nvals = len(vals)
 
         vals_sort = np.sort(vals)
     
-        level = vals_sort[int((1-obs_frac)*(nvals-1))]
+        if time is False:
+            level = vals_sort[int((1-obs_frac)*(nvals-1))]
+            return level 
 
-        return level 
+        idx0 = 0
+        idx1 = nvals-1
+
+        totvals = np.sum(vals_sort)
+
+        while 1:
+            idx2 = int(0.5*(idx0+idx1))
+            vals_sum = np.sum(vals_sort[idx2:])
+            vals_frac = vals_sum / totvals
+
+            if (idx2-idx0) < 5:
+                return vals_sort[idx2]
+            elif np.abs(vals_frac - obs_frac)  < 0.01:
+                return vals_sort[idx2]
+
+            if vals_frac < obs_frac:
+                idx1 = idx2
+            else:
+                idx0 = idx2
+

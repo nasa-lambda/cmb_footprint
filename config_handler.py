@@ -475,3 +475,96 @@ class ConfigHandler(object):
         coord = self.config.get(survey_name, 'coord')
 
         return vtxs, coord
+
+    def get_rectangle_bounds_outline(self, survey_name):
+
+        ra_range = self.config.get(survey_name, 'ra_range').split(',')
+        ra_range = [tmp.strip() for tmp in ra_range]
+
+        dec_range = self.config.get(survey_name, 'dec_range').split(',')
+        dec_range = [tmp.strip() for tmp in dec_range]
+
+        pt1 = SkyCoord(ra_range[0], dec_range[0])
+        pt2 = SkyCoord(ra_range[1], dec_range[0])
+        pt3 = SkyCoord(ra_range[1], dec_range[1])
+        pt4 = SkyCoord(ra_range[0], dec_range[1])
+
+        lons = [pt1.ra.deg, pt2.ra.deg, pt3.ra.deg, pt4.ra.deg]
+        lats = [pt1.dec.deg, pt2.dec.deg, pt3.dec.deg, pt4.dec.deg]
+
+        vtxs = np.transpose([lons,lats])
+
+        coord = self.config.get(survey_name, 'coord')
+
+        return vtxs, coord
+
+    def get_rectangle_outline(self, survey_name):
+
+        center = self.config.get(survey_name, 'center').split(',')
+        center = [tmp.strip() for tmp in center]
+        center = SkyCoord(center[0], center[1])
+        center = [center.ra.deg, center.dec.deg]
+
+#       edge length. The corners of the box are center +- length/2.0
+        length = self.config.get(survey_name, 'size').split(',')
+        length = [tmp.strip() for tmp in length]
+        length = SkyCoord(length[0], length[1])
+        length = [length.ra.deg, length.dec.deg]
+
+        ra_1 = center[0] - 0.5*length[0]
+        ra_2 = center[0] + 0.5*length[0]
+        dec_1 = center[1] - 0.5*length[1]
+        dec_2 = center[1] + 0.5*length[1]
+
+        lons = [ra_1, ra_2, ra_2, ra_1]
+        lats = [dec_1, dec_1, dec_2, dec_2]
+
+        vtxs = np.transpose([lons, lats])
+
+        coord = self.config.get(survey_name, 'coord')
+
+        return vtxs, coord
+
+    def get_disc_outline(self, survey_name):
+
+        center = self.config.get(survey_name, 'center').split(',')
+        center = [tmp.strip() for tmp in center]
+        center = SkyCoord(center[0], center[1])
+        center = [center.ra.deg, center.dec.deg]
+
+#       This calculation is so that radius can be input in different
+#       coordinates (i.e. deg, arcminutes, etc.)
+        radius = self.config.get(survey_name, 'radius')
+        tmp = SkyCoord('0d', radius)
+
+        lons = []
+        lats = []
+
+        nvtxs = 100
+        for i in range(nvtxs):
+            ang = np.radians(360.0 * i / (nvtxs-1))
+            lons.append(center.ra.deg + np.cos(ang)*np.abs(tmp.dec.deg))
+            lats.append(center.dec.deg + np.sin(ang)*np.abs(tmp.dec.deg))
+
+        vtxs = np.transpose([lons, lats])
+
+        coord = self.config.get(survey_name, 'coord')
+
+        return vtxs, coord
+
+    def get_combination_outline(self, survey_name):
+
+        components = self.config.get(survey_name, 'components').split(',')
+        components = [tmp.strip() for tmp in components]
+
+        vtxs_list = []
+        coords = []
+
+        for component in components:
+            vtxs, coord = self.load_survey_outline(component)
+
+            vtxs_list.append(vtxs)
+            coords.append(coord)
+
+        return vtxs_list, coords
+
