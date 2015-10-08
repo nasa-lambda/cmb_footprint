@@ -18,8 +18,8 @@ import numpy as np
 import pylab as pl
 import healpy as H
 import matplotlib.cm as cm
-import visufunc_ext as vf
 
+import cmb_footprint.visufunc_ext as vf
 import cmb_footprint.util as util
 from cmb_footprint.config_handler import ConfigHandler
 
@@ -44,19 +44,19 @@ class SurveyStack(object):
         self.lonra = lonra
         self.rot = rot
         self.cbs = []
-        
+
         if projection == 'mollweide':
             self.mapview = H.mollview
             self.mapcontour = vf.mollcontour
         elif projection == 'cartesian':
             self.mapview = H.cartview
-            #self.mapcontour = vf.cartcontour
+#           self.mapcontour = vf.cartcontour
         elif projection == 'orthographic':
             self.mapview = H.orthview
-            #self.mapcontour = vf.orthcontour
+#           self.mapcontour = vf.orthcontour
         elif projection == 'gnomonic':
             self.mapview = H.gnomview
-            #self.mapcontour = vf.gnomcontour
+#           self.mapcontour = vf.gnomcontour
 
         if map_path is None:
             full_path = inspect.getfile(inspect.currentframe())
@@ -305,7 +305,7 @@ class SurveyStack(object):
         '''
 
         hpx_maps, coord = self.config.load_survey(survey_name)
-        hpx_map = self.combine_maps(hpx_maps)
+        hpx_map = combine_maps(hpx_maps)
 
         if label is None:
             label = survey_name
@@ -327,24 +327,24 @@ class SurveyStack(object):
             string or rgb triplet. Default = 'red'
 
         label : string, optional
-            The name to use when labeling this survey on the footprint. 
+            The name to use when labeling this survey on the footprint.
             If not input, we will use the survey name.
-        
+
         Notes
         -----
         This function is for survey footprints that are defined in the
         configuration file as opposed loading a healpix map
         '''
-        
+
         vtxs, coord = self.config.load_survey_outline(survey_name)
 
         if label is None:
             label = survey_name
 
-        if type(coord) is list:
-            for v1, c1 in zip(vtxs[:-1],coord[:-1]):
-                self.superimpose_polygon_outline(v1, label, color=color,
-                                                 coord_in=c1, add_cb=False)
+        if isinstance(coord, list):
+            for vtx1, coord1 in zip(vtxs[:-1], coord[:-1]):
+                self.superimpose_polygon_outline(vtx1, label, color=color,
+                                                 coord_in=coord1, add_cb=False)
             vtxs = vtxs[-1]
             coord = coord[-1]
 
@@ -365,17 +365,17 @@ class SurveyStack(object):
             string or rgb triplet. Default = 'red'
 
         label : string, optional
-            The name to use when labeling this survey on the footprint. 
+            The name to use when labeling this survey on the footprint.
             If not input, we will use the survey name.
 
         Notes
         -----
-        This function is for entries that load Healpix maps. We draw 
-        contours instead of plotting an image of the map. For entries that 
-        are not Healpix maps, but define the survey region, try 
+        This function is for entries that load Healpix maps. We draw
+        contours instead of plotting an image of the map. For entries that
+        are not Healpix maps, but define the survey region, try
         superimpose_survey_outline(...)
         '''
-        
+
         hpx_maps, coord = self.config.load_survey(survey_name)
 
         if label is None:
@@ -387,7 +387,7 @@ class SurveyStack(object):
 
         self.superimpose_hpxmap_contour(hpx_maps[-1], label, color=color,
                                         coord_in=coord, add_cb=True, frac=frac)
-        
+
     def superimpose_hpxmap_contour(self, hpx_map, label, color='red',
                                    coord_in='C', add_cb=True, frac=0.85):
         '''Superimpose a contour of an input healpix map.
@@ -410,13 +410,13 @@ class SurveyStack(object):
         add_cb : boolean, optional
             Whether to add a colorbar labeling the input map. Default = true.
         '''
- 
+
         idx_nan = (hpx_map == 0)
-       
+
 #       Smoothing makes it more likely that contours don't have holes in them
-#        hpx_map = H.smoothing(hpx_map, fwhm=np.radians(30.0/60.0),
-#                              verbose=False)
-        
+#       hpx_map = H.smoothing(hpx_map, fwhm=np.radians(30.0/60.0),
+#                             verbose=False)
+
         hpx_map /= np.max(hpx_map)
         hpx_map[idx_nan] = np.NaN
 
@@ -424,7 +424,7 @@ class SurveyStack(object):
 
         coord = [coord_in, self.coord_plot]
 
-        level = self.determine_level(hpx_map, frac)
+        level = determine_level(hpx_map, frac)
 
         if self.partialmap:
 #           Colorbar is added to this and then deleted to make sure there is
@@ -433,28 +433,28 @@ class SurveyStack(object):
             sub = (1, 1, 1)
             margins = (0.01, 0.025, 0.01, 0.03)
             map_tmp = H.cartcontour(hpx_map, 5, title='', xsize=1600, coord=coord,
-                                 fig=self.fig.number, cmap=cm1, notext=True,
-                                 flip='astro', rot=self.rot, latra=self.latra,
-                                 lonra=self.lonra, sub=sub, margins=margins,
-                                 return_projected_map=True)
+                                    fig=self.fig.number, cmap=cm1, notext=True,
+                                    flip='astro', rot=self.rot, latra=self.latra,
+                                    lonra=self.lonra, sub=sub, margins=margins,
+                                    return_projected_map=True)
             idx = np.isfinite(map_tmp)
             if add_cb:
                 add_cb = len(map_tmp[idx]) > 0
             self.fig.delaxes(self.fig.axes[-1])
         else:
-            self.mapcontour(hpx_map, [-0.1,level], title='', xsize=1600, coord=coord,
-                         cbar=None, fig=self.fig.number, cmap=cm1,
-                         notext=True, flip='astro', rot=self.rot)
+            self.mapcontour(hpx_map, [-0.1, level], title='', xsize=1600, coord=coord,
+                            cbar=None, fig=self.fig.number, cmap=cm1,
+                            notext=True, flip='astro', rot=self.rot)
 
         if add_cb:
-    #       Temporary axis with a Healpix map so I can get the correct color 
+    #       Temporary axis with a Healpix map so I can get the correct color
     #       for the colorbar
             cm1 = util.get_color_map(color)
             coord = [coord_in, self.coord_plot]
             hpx_map = np.ones(12*32**2)
             self.mapview(hpx_map, title='', xsize=1600, coord=coord,
-                        cbar=None, fig=self.fig.number, cmap=cm1,
-                        notext=True, flip='astro', rot=self.rot)
+                         cbar=None, fig=self.fig.number, cmap=cm1,
+                         notext=True, flip='astro', rot=self.rot)
 
 #           First add the new colorbar axis to the figure
             im0 = self.fig.axes[-1].get_images()[0]
@@ -464,7 +464,7 @@ class SurveyStack(object):
                               label=label, values=[2, 3])
 
             self.cbs.append(ax_color)
-            
+
             self.fig.delaxes(self.fig.axes[-2])
 
 #           Readjust the location of every colorbar
@@ -474,7 +474,6 @@ class SurveyStack(object):
             for ax_tmp in self.cbs:
                 ax_tmp.set_position([left, box.y0-0.1, 0.05, 0.05])
                 left += 1.0 / ncb
-    
 
     def superimpose_polygon_outline(self, vertices, label, color='red',
                                     coord_in='C', add_cb=True):
@@ -499,10 +498,10 @@ class SurveyStack(object):
             Whether to add a colorbar corresponding to this polygon or not
         '''
 
-        lons = vertices[:,0]
+        lons = vertices[:, 0]
         lons = np.append(lons, lons[0])
 
-        lats = vertices[:,1]
+        lats = vertices[:, 1]
         lats = np.append(lats, lats[0])
 
         nvertices = len(lons)
@@ -521,14 +520,14 @@ class SurveyStack(object):
                    color=color)
 
         if add_cb:
-#           Temporary axis with a Healpix map so I can get the correct color 
+#           Temporary axis with a Healpix map so I can get the correct color
 #           for the colorbar
             cm1 = util.get_color_map(color)
             coord = [coord_in, self.coord_plot]
             hpx_map = np.ones(12*32**2)
             self.mapview(hpx_map, title='', xsize=1600, coord=coord,
-                        cbar=None, fig=self.fig.number, cmap=cm1,
-                        notext=True, flip='astro', rot=self.rot)
+                         cbar=None, fig=self.fig.number, cmap=cm1,
+                         notext=True, flip='astro', rot=self.rot)
 
 #           First add the new colorbar axis to the figure
             im0 = self.fig.axes[-1].get_images()[0]
@@ -538,7 +537,7 @@ class SurveyStack(object):
                               label=label, values=[2, 3])
 
             self.cbs.append(ax_color)
-           
+
 #           Delete the temporary map
             self.fig.delaxes(self.fig.axes[-2])
 
@@ -550,76 +549,76 @@ class SurveyStack(object):
                 ax_tmp.set_position([left, box.y0-0.1, 0.05, 0.05])
                 left += 1.0 / ncb
 
-    def combine_maps(self, hpx_maps):
-        '''Code to combine an array of maps.
+def combine_maps(hpx_maps):
+    '''Code to combine an array of maps.
 
-        Parameters
-        ----------
-        hpx_maps : list
-            A list of healpix maps we want to combine into a single map
+    Parameters
+    ----------
+    hpx_maps : list
+        A list of healpix maps we want to combine into a single map
 
-        Notes
-        -----
-        This is called when we plot images of the surveys. It is not called
-        when we plot outlines
-        '''
+    Notes
+    -----
+    This is called when we plot images of the surveys. It is not called
+    when we plot outlines
+    '''
 
-        map_comb = np.zeros_like(hpx_maps[0])
+    map_comb = np.zeros_like(hpx_maps[0])
 
-        for hpx_map in hpx_maps:
-            map_comb += hpx_map
+    for hpx_map in hpx_maps:
+        map_comb += hpx_map
 
-        map_comb /= np.max(map_comb)
+    map_comb /= np.max(map_comb)
 
-        return map_comb
+    return map_comb
 
-    def determine_level(self, hpx_map, obs_frac, time=True):
-        '''Determine the contour level than contains the obs_frac of the total 
-        observation time.
+def determine_level(hpx_map, obs_frac, time=True):
+    '''Determine the contour level than contains the obs_frac of the total
+    observation time.
 
-        Parameters
-        ----------
-        hpx_map : array-like
-            The input healpix map. This should be a survey footprint of a 
-            single patch.
+    Parameters
+    ----------
+    hpx_map : array-like
+        The input healpix map. This should be a survey footprint of a
+        single patch.
 
-        obs_frac: float
-            The fraction of observation time that we want the contour to enclose.
+    obs_frac: float
+        The fraction of observation time that we want the contour to enclose.
 
-        time : boolean, optional
-            If true, obs_frac is fraction of observation time. If false, obs_frac is fraction 
-            of observation area. Default = True
-        '''
+    time : boolean, optional
+        If true, obs_frac is fraction of observation time. If false,
+        obs_frac is fraction of observation area. Default = True
+    '''
 
-        idx = hpx_map > 0
+    idx = hpx_map > 0
 
-        vals = hpx_map[idx]
-        
-        nvals = len(vals)
+    vals = hpx_map[idx]
 
-        vals_sort = np.sort(vals)
-    
-        if time is False:
-            level = vals_sort[int((1-obs_frac)*(nvals-1))]
-            return level 
+    nvals = len(vals)
 
-        idx0 = 0
-        idx1 = nvals-1
+    vals_sort = np.sort(vals)
 
-        totvals = np.sum(vals_sort)
+    if time is False:
+        level = vals_sort[int((1-obs_frac)*(nvals-1))]
+        return level
 
-        while 1:
-            idx2 = int(0.5*(idx0+idx1))
-            vals_sum = np.sum(vals_sort[idx2:])
-            vals_frac = vals_sum / totvals
+    idx0 = 0
+    idx1 = nvals-1
 
-            if (idx2-idx0) < 5:
-                return vals_sort[idx2]
-            elif np.abs(vals_frac - obs_frac)  < 0.01:
-                return vals_sort[idx2]
+    totvals = np.sum(vals_sort)
 
-            if vals_frac < obs_frac:
-                idx1 = idx2
-            else:
-                idx0 = idx2
+    while 1:
+        idx2 = int(0.5*(idx0+idx1))
+        vals_sum = np.sum(vals_sort[idx2:])
+        vals_frac = vals_sum / totvals
+
+        if (idx2-idx0) < 5:
+            return vals_sort[idx2]
+        elif np.abs(vals_frac - obs_frac) < 0.01:
+            return vals_sort[idx2]
+
+        if vals_frac < obs_frac:
+            idx1 = idx2
+        else:
+            idx0 = idx2
 

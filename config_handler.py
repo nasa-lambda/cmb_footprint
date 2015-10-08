@@ -412,12 +412,12 @@ class ConfigHandler(object):
 
                 if nside_tmp > nside_hpx:
                     nside_hpx = nside_tmp
-            
+
                 hpx_maps.append(tmp_map)
 
         nmaps = len(hpx_maps)
         for i in range(nmaps):
-            hpx_maps[i] = H.ud_grade(hpx_maps[i],nside_hpx)
+            hpx_maps[i] = H.ud_grade(hpx_maps[i], nside_hpx)
 
         return hpx_maps, coord
 
@@ -442,7 +442,7 @@ class ConfigHandler(object):
             tmp = lonlat_val.ra.deg
             if isneg:
                 tmp -= 360.0
-                
+
             lons.append(tmp)
             lats.append(lonlat_val.dec.deg)
             i += 1
@@ -459,16 +459,16 @@ class ConfigHandler(object):
         lats = []
 
         fns = self._download_files(survey_name)
-        fn = fns[0]
+        fn1 = fns[0]
 
         try:
-            data = np.loadtxt(fn)
+            data = np.loadtxt(fn1)
         except:
-            data = np.loadtxt(fn, delimiter=',')
+            data = np.loadtxt(fn1, delimiter=',')
 
-        lons = data[:,0]
-        lats = data[:,1]
-        npts = len(lons)
+        lons = data[:, 0]
+        lats = data[:, 1]
+#       npts = len(lons)
 
         vtxs = np.transpose([lons, lats])
 
@@ -492,7 +492,7 @@ class ConfigHandler(object):
         lons = [pt1.ra.deg, pt2.ra.deg, pt3.ra.deg, pt4.ra.deg]
         lats = [pt1.dec.deg, pt2.dec.deg, pt3.dec.deg, pt4.dec.deg]
 
-        vtxs = np.transpose([lons,lats])
+        vtxs = np.transpose([lons, lats])
 
         coord = self.config.get(survey_name, 'coord')
 
