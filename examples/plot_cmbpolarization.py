@@ -21,9 +21,9 @@ if __name__ == '__main__':
 #   data = H.read_map(fn_background,field=(0,1))
 #   background_map = np.sqrt(data[0]**2 + data[1]**2)
 
-#   fp = footprint.SurveyStack(background_map, fignum=1, projection=H.mollview, coord_plot='C', rot=[0,0],
+#   fp = footprint.SurveyStack(background_map, fignum=1, projection='mollweide', coord_plot='C', rot=[0,0],
 #                              config='../footprint.cfg')
-    fp = footprint.SurveyStack('PLANCK-DUSTPOL', fignum=1, projection=H.mollview, coord_plot='C', rot=[0,0],
+    fp = footprint.SurveyStack('PLANCK-DUSTPOL', fignum=1, projection='mollweide', coord_plot='C', rot=[0,0],
                                config='../footprint.cfg')
 
     fp.superimpose_survey('BICEP2',color='blue')
