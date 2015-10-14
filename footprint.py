@@ -34,7 +34,7 @@ class SurveyStack(object):
                  projection='mollweide', coord_bg='G', coord_plot='C',
                  rot=None, partialmap=False, latra=None, lonra=None,
                  config='footprint.cfg', map_path=None,
-                 download_config=False):
+                 download_config=False, **kwds):
 
         self.xsize = xsize
         self.fig = pl.figure(fignum)
@@ -50,13 +50,13 @@ class SurveyStack(object):
             self.mapcontour = vf.mollcontour
         elif projection == 'cartesian':
             self.mapview = H.cartview
-#           self.mapcontour = vf.cartcontour
+            self.mapcontour = vf.cartcontour
         elif projection == 'orthographic':
             self.mapview = H.orthview
-#           self.mapcontour = vf.orthcontour
+            self.mapcontour = vf.orthcontour
         elif projection == 'gnomonic':
             self.mapview = H.gnomview
-#           self.mapcontour = vf.gnomcontour
+            self.mapcontour = vf.gnomcontour
 
         if map_path is None:
             full_path = inspect.getfile(inspect.currentframe())
@@ -94,7 +94,7 @@ class SurveyStack(object):
             self.mapview(background, title=title, xsize=self.xsize,
                          coord=coord, fig=self.fig.number, cmap=cm.Greys,
                          norm='log', min=1.0, max=5000, notext=True,
-                         cbar=None, rot=rot, flip='astro')
+                         cbar=None, rot=rot, flip='astro', **kwds)
 
         H.graticule(dpar=30.0, dmer=30.0, coord='C', verbose=False)
 
@@ -352,7 +352,7 @@ class SurveyStack(object):
                                          coord_in=coord)
 
     def superimpose_survey_contour(self, survey_name, color='red',
-                                   label=None, frac=0.85):
+                                   label=None, frac=0.85, **kwds):
         '''Superimpose an outline of a survey.
 
         Parameters
@@ -383,19 +383,22 @@ class SurveyStack(object):
 
         for hpx_map in hpx_maps[:-1]:
             self.superimpose_hpxmap_contour(hpx_map, label, color=color,
-                                            coord_in=coord, add_cb=False)
+                                            coord_in=coord, add_cb=False,
+                                            **kwds)
 
         self.superimpose_hpxmap_contour(hpx_maps[-1], label, color=color,
-                                        coord_in=coord, add_cb=True, frac=frac)
+                                        coord_in=coord, add_cb=True, frac=frac,
+                                        **kwds)
 
     def superimpose_hpxmap_contour(self, hpx_map, label, color='red',
-                                   coord_in='C', add_cb=True, frac=0.85):
+                                   coord_in='C', add_cb=True, frac=0.85,
+                                   smooth_map=None):
         '''Superimpose a contour of an input healpix map.
 
         Parameters
         ----------
         hpx_map : array-like
-            The input healpix ma[
+            The input healpix map
 
         label : string
             The name to use as a label for the input map
@@ -409,13 +412,21 @@ class SurveyStack(object):
 
         add_cb : boolean, optional
             Whether to add a colorbar labeling the input map. Default = true.
+
+        frac : float, optional
+            The contour level will be drawn containing `frac' levels of observation time
+
+        smooth_map : float
+            FWHM to smooth the input map (in arcminutes)
         '''
 
         idx_nan = (hpx_map == 0)
 
-#       Smoothing makes it more likely that contours don't have holes in them
-#       hpx_map = H.smoothing(hpx_map, fwhm=np.radians(30.0/60.0),
-#                             verbose=False)
+#       Smoothing makes it more likely that contours don't have holes in them,
+#       but it takes some time to smooth each map
+        if smooth_map:
+            hpx_map = H.smoothing(hpx_map, fwhm=np.radians(smooth_map/60.0),
+                                  verbose=False)
 
         hpx_map /= np.max(hpx_map)
         hpx_map[idx_nan] = np.NaN
@@ -443,7 +454,7 @@ class SurveyStack(object):
             self.fig.delaxes(self.fig.axes[-1])
         else:
             self.mapcontour(hpx_map, [-0.1, level], title='', xsize=1600, coord=coord,
-                            cbar=None, fig=self.fig.number, cmap=cm1,
+                            cbar=False, fig=self.fig.number, cmap=cm1,
                             notext=True, flip='astro', rot=self.rot)
 
         if add_cb:
