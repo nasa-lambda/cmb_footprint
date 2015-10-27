@@ -34,7 +34,7 @@ class SurveyStack(object):
                  projection='mollweide', coord_bg='G', coord_plot='C',
                  rot=None, partialmap=False, latra=None, lonra=None,
                  config='footprint.cfg', map_path=None,
-                 download_config=False, **kwds):
+                 download_config=False, title='Survey Footprints', **kwds):
 
         self.xsize = xsize
         self.fig = pl.figure(fignum)
@@ -80,25 +80,27 @@ class SurveyStack(object):
 
         cm.Greys.set_under(alpha=0.0)
 
-        title = 'Survey Footprints'
+        min1 = kwds.pop('min', 1.0)
+        max1 = kwds.pop('max', 5000.0)
 
         if self.partialmap:
             sub = (1, 1, 1)
             margins = (0.01, 0.025, 0.01, 0.03)
             H.cartview(background, title=title, xsize=self.xsize, coord=coord,
                        fig=self.fig.number, cmap=cm.Greys, norm='log',
-                       notext=True, rot=rot, flip='astro', min=1.0, max=5000,
+                       notext=True, rot=rot, flip='astro', min=min1, max=max1,
                        latra=latra, lonra=lonra, sub=sub, margins=margins)
             self.fig.delaxes(self.fig.axes[-1])
         else:
             self.mapview(background, title=title, xsize=self.xsize,
                          coord=coord, fig=self.fig.number, cmap=cm.Greys,
-                         norm='log', min=1.0, max=5000, notext=True,
+                         norm='log', min=min1, max=max1, notext=True,
                          cbar=None, rot=rot, flip='astro', **kwds)
 
         H.graticule(dpar=30.0, dmer=30.0, coord='C', verbose=False)
 
-    def superimpose_hpxmap(self, hpx_map, label, color='red', coord_in='C'):
+    def superimpose_hpxmap(self, hpx_map, label, color='red', coord_in='C',
+                           add_cb=True):
         '''Superimpose a Healpix map on the background map.
 
         Parameters
@@ -148,7 +150,6 @@ class SurveyStack(object):
             self.mapview(hpx_map, title='', xsize=1600, coord=coord,
                          cbar=None, fig=self.fig.number, cmap=cm1,
                          notext=True, flip='astro', rot=self.rot)
-            add_cb = True
 
         if add_cb:
 #           First add the new colorbar axis to the figure
@@ -285,7 +286,7 @@ class SurveyStack(object):
                                 coord_in=coord_in)
 
     def superimpose_survey(self, survey_name, color='red',
-                           label=None):
+                           label=None, add_cb=True):
         '''Superimpose a specific survey whose Healpix footprints we have
         pregenerated and are listed in the configuration file
 
@@ -311,10 +312,10 @@ class SurveyStack(object):
             label = survey_name
 
         self.superimpose_hpxmap(hpx_map, label, color=color,
-                                coord_in=coord)
+                                coord_in=coord, add_cb=add_cb)
 
     def superimpose_survey_outline(self, survey_name, color='red',
-                                   label=None):
+                                   label=None, add_cb=True):
         '''Superimpose an outline of a survey
 
         Parameters
@@ -349,7 +350,7 @@ class SurveyStack(object):
             coord = coord[-1]
 
         self.superimpose_polygon_outline(vtxs, label, color=color,
-                                         coord_in=coord)
+                                         coord_in=coord, add_cb=add_cb)
 
     def superimpose_survey_contour(self, survey_name, color='red',
                                    label=None, frac=0.85, **kwds):
