@@ -65,6 +65,7 @@ This next table lists all the surveys associated with CMB polarization experimen
 | QUIET | QUIET-W-G-1 | Plot of the G-1 galaxy field for QUIET's W band. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/QUIET_Wband_G-1_hitmap.fits.gz) |
 | QUIET | QUIET-W-G-2 | Plot of the G-2 galaxy field for QUIET's W band. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/QUIET_Wband_G-2_hitmap.fits.gz) |
 | BICEP2 | BICEP2 | Plot of the CMB patch for BICEP2. Based off of their released field outline, but modified so that the polygon is convex and healpy.query_polygon() works | |
+| BICEP2 | BICEP2-FILE | Plot of the actual CMB patch for BICEP2. |  [Link](http://bicepkeck.org/B2_3yr_373sqdeg_field_20140509.txt) |
 | POLARBEAR | POLARBEAR | Plots of the all the patches for the first season of PB observations. Positions and sizes are taken from table in paper. | |
 | POLARBEAR | POLARBEAR-RA23 | Plots of the RA23 patch for PB. Position is taken from table in paper and size is chosen so that fraction of sky is consistent with paper. | |
 | POLARBEAR | POLARBEAR-RA12 | Plots of the RA12 patch for PB. Position is taken from table in paper and size is chosen so that fraction of sky is consistent with paper. | |
