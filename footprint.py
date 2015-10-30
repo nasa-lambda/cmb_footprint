@@ -30,19 +30,18 @@ class SurveyStack(object):
     the number of hits (more hits = less transparent).
     '''
 
-    def __init__(self, background, xsize=1600, nside=None, fignum=None,
+    def __init__(self, background, nside=None, fignum=None,
                  projection='mollweide', coord_bg='G', coord_plot='C',
-                 rot=None, partialmap=False, latra=None, lonra=None,
-                 config='footprint.cfg', map_path=None,
-                 download_config=False, title='Survey Footprints', **kwds):
+                 partialmap=False, config='footprint.cfg',
+                 map_path=None, download_config=False,
+                 title='Survey Footprints', cbar=None, min=1.0,
+                 max=5000.0, **kwds):
 
-        self.xsize = xsize
         self.fig = pl.figure(fignum)
         self.coord_plot = coord_plot
         self.partialmap = partialmap
-        self.latra = latra
-        self.lonra = lonra
-        self.rot = rot
+
+        self.kwds = kwds
         self.cbs = []
 
         if projection == 'mollweide':
@@ -80,22 +79,19 @@ class SurveyStack(object):
 
         cm.Greys.set_under(alpha=0.0)
 
-        min1 = kwds.pop('min', 1.0)
-        max1 = kwds.pop('max', 5000.0)
-
         if self.partialmap:
             sub = (1, 1, 1)
             margins = (0.01, 0.025, 0.01, 0.03)
-            H.cartview(background, title=title, xsize=self.xsize, coord=coord,
+            H.cartview(background, title=title, coord=coord,
                        fig=self.fig.number, cmap=cm.Greys, norm='log',
-                       notext=True, rot=rot, flip='astro', min=min1, max=max1,
-                       latra=latra, lonra=lonra, sub=sub, margins=margins)
+                       notext=True, flip='astro', min=min, max=max,
+                       sub=sub, margins=margins, **kwds)
             self.fig.delaxes(self.fig.axes[-1])
         else:
-            self.mapview(background, title=title, xsize=self.xsize,
+            self.mapview(background, title=title,
                          coord=coord, fig=self.fig.number, cmap=cm.Greys,
-                         norm='log', min=min1, max=max1, notext=True,
-                         cbar=None, rot=rot, flip='astro', **kwds)
+                         norm='log', min=min, max=max, notext=True,
+                         cbar=cbar, flip='astro', **kwds)
 
         H.graticule(dpar=30.0, dmer=30.0, coord='C', verbose=False)
 
@@ -138,18 +134,18 @@ class SurveyStack(object):
 #           sure the title is not partially off the figure for a square map
             sub = (1, 1, 1)
             margins = (0.01, 0.025, 0.01, 0.03)
-            map_tmp = H.cartview(hpx_map, title='', xsize=1600, coord=coord,
-                                 fig=self.fig.number, cmap=cm1, notext=True,
-                                 flip='astro', rot=self.rot, latra=self.latra,
-                                 lonra=self.lonra, sub=sub, margins=margins,
-                                 return_projected_map=True)
+            map_tmp = H.cartview(hpx_map, title='',
+                                 coord=coord, fig=self.fig.number, cmap=cm1,
+                                 notext=True, flip='astro', sub=sub,
+                                 margins=margins, return_projected_map=True,
+                                 **self.kwds)
             idx = np.isfinite(map_tmp)
             add_cb = len(map_tmp[idx]) > 0
             self.fig.delaxes(self.fig.axes[-1])
         else:
-            self.mapview(hpx_map, title='', xsize=1600, coord=coord,
+            self.mapview(hpx_map, title='', coord=coord,
                          cbar=None, fig=self.fig.number, cmap=cm1,
-                         notext=True, flip='astro', rot=self.rot)
+                         notext=True, flip='astro', **self.kwds)
 
         if add_cb:
 #           First add the new colorbar axis to the figure
@@ -537,9 +533,9 @@ class SurveyStack(object):
             cm1 = util.get_color_map(color)
             coord = [coord_in, self.coord_plot]
             hpx_map = np.ones(12*32**2)
-            self.mapview(hpx_map, title='', xsize=1600, coord=coord,
+            self.mapview(hpx_map, title='', coord=coord,
                          cbar=None, fig=self.fig.number, cmap=cm1,
-                         notext=True, flip='astro', rot=self.rot)
+                         notext=True, flip='astro', **self.kwds)
 
 #           First add the new colorbar axis to the figure
             im0 = self.fig.axes[-1].get_images()[0]
