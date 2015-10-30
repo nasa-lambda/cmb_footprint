@@ -187,7 +187,7 @@ class ConfigHandler(object):
             try:
                 unit = header['TUNIT1']
             except KeyError:
-                unit = ''
+                unit = None
         else:
             hpx_map = H.read_map(fns[0], verbose=False)
 

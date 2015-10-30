@@ -35,7 +35,7 @@ class SurveyStack(object):
                  partialmap=False, config='footprint.cfg',
                  map_path=None, download_config=False,
                  title='Survey Footprints', cbar=None, min=1.0,
-                 max=5000.0, log=True, **kwds):
+                 max=5000.0, log=True, unit='', **kwds):
 
         self.fig = pl.figure(fignum)
         self.coord_plot = coord_plot
@@ -67,9 +67,11 @@ class SurveyStack(object):
 
 #       Could also just call load_survey which will call get_background
         if isinstance(background, str):
-            bgmap, coord_bg, unit = self.config.load_survey(background,
-                                                            get_unit=True)
+            bgmap, coord_bg, unit2 = self.config.load_survey(background,
+                                                             get_unit=True)
             background = bgmap[0]
+            if unit2 is not None:
+                unit = unit2
 
         if nside is None:
             nside = H.npix2nside(len(background))
