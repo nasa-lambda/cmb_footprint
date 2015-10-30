@@ -86,7 +86,7 @@ class ConfigHandler(object):
             if handler == 'hpx_file':
                 self._download_files(section)
 
-    def load_survey(self, survey_name):
+    def load_survey(self, survey_name, **kwds):
         '''Load or generate the healpix map for a survey defined in the
         configuration file
 
@@ -104,17 +104,14 @@ class ConfigHandler(object):
         handler = self.config.get(survey_name, 'handler')
 
         func = getattr(self, 'get_'+handler)
-        hpx_map, coord = func(survey_name)
-
-        return hpx_map, coord
+        return func(survey_name, **kwds)
 
     def load_survey_outline(self, survey_name):
 
         handler = self.config.get(survey_name, 'handler')
         func = getattr(self, 'get_'+handler+'_outline')
-        vtxs, coord = func(survey_name)
 
-        return vtxs, coord
+        return func(survey_name)
 
     def _download_files(self, survey_name):
         '''Return the local paths to the files associated with a survey.
@@ -165,7 +162,7 @@ class ConfigHandler(object):
 
         return fns_out
 
-    def get_hpx_file(self, survey_name):
+    def get_hpx_file(self, survey_name, get_unit=False):
         '''Load the healpix file associated with a given survey.
 
         Handler in .cfg file: "hpx_file"
@@ -184,13 +181,25 @@ class ConfigHandler(object):
         fns = self._download_files(survey_name)
         coord = self.config.get(survey_name, 'coord')
 
-        hpx_map = H.read_map(fns[0], verbose=False)
+        if get_unit:
+            hpx_map, header = H.read_map(fns[0], verbose=False, h=True)
+            header = dict(header)
+            try:
+                unit = header['TUNIT1']
+            except KeyError:
+                unit = ''
+        else:
+            hpx_map = H.read_map(fns[0], verbose=False)
+
         nside = H.npix2nside(len(hpx_map))
         for fn_tmp in fns[1:]:
             tmp_map = H.read_map(fn_tmp, verbose=False)
             hpx_map += H.ud_grade(tmp_map, nside)
 
-        return [hpx_map], coord
+        if get_unit:
+            return [hpx_map], coord, unit
+        else:
+            return [hpx_map], coord
 
     def get_polygon(self, survey_name):
         '''Generates a healpix map for a given survey given vertices of

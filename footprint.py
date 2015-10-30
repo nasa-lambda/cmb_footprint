@@ -35,7 +35,7 @@ class SurveyStack(object):
                  partialmap=False, config='footprint.cfg',
                  map_path=None, download_config=False,
                  title='Survey Footprints', cbar=None, min=1.0,
-                 max=5000.0, **kwds):
+                 max=5000.0, log=True, **kwds):
 
         self.fig = pl.figure(fignum)
         self.coord_plot = coord_plot
@@ -67,8 +67,9 @@ class SurveyStack(object):
 
 #       Could also just call load_survey which will call get_background
         if isinstance(background, str):
-            background, coord_bg = self.config.load_survey(background)
-            background = background[0]
+            bgmap, coord_bg, unit = self.config.load_survey(background,
+                                                            get_unit=True)
+            background = bgmap[0]
 
         if nside is None:
             nside = H.npix2nside(len(background))
@@ -79,24 +80,30 @@ class SurveyStack(object):
 
         cm.Greys.set_under(alpha=0.0)
 
+        if log:
+            min = np.log(min)
+            max = np.log(max)
+            unit = r'$\log($' + unit + r'$)$'
+            background = np.log(background)
+
         if self.partialmap:
             sub = (1, 1, 1)
             margins = (0.01, 0.025, 0.01, 0.03)
             H.cartview(background, title=title, coord=coord,
-                       fig=self.fig.number, cmap=cm.Greys, norm='log',
+                       fig=self.fig.number, cmap=cm.Greys,
                        notext=True, flip='astro', min=min, max=max,
                        sub=sub, margins=margins, **kwds)
             self.fig.delaxes(self.fig.axes[-1])
         else:
             self.mapview(background, title=title,
                          coord=coord, fig=self.fig.number, cmap=cm.Greys,
-                         norm='log', min=min, max=max, notext=True,
-                         cbar=cbar, flip='astro', **kwds)
+                         min=min, max=max, notext=True,
+                         cbar=cbar, flip='astro', unit=unit, **kwds)
 
         H.graticule(dpar=30.0, dmer=30.0, coord='C', verbose=False)
 
     def superimpose_hpxmap(self, hpx_map, label, color='red', coord_in='C',
-                           add_cb=True):
+                           cbar=True):
         '''Superimpose a Healpix map on the background map.
 
         Parameters
@@ -147,7 +154,7 @@ class SurveyStack(object):
                          cbar=None, fig=self.fig.number, cmap=cm1,
                          notext=True, flip='astro', **self.kwds)
 
-        if add_cb:
+        if cbar:
 #           First add the new colorbar axis to the figure
             im0 = self.fig.axes[-1].get_images()[0]
             box = self.fig.axes[0].get_position()
@@ -282,7 +289,7 @@ class SurveyStack(object):
                                 coord_in=coord_in)
 
     def superimpose_survey(self, survey_name, color='red',
-                           label=None, add_cb=True):
+                           label=None, cbar=True):
         '''Superimpose a specific survey whose Healpix footprints we have
         pregenerated and are listed in the configuration file
 
@@ -308,10 +315,10 @@ class SurveyStack(object):
             label = survey_name
 
         self.superimpose_hpxmap(hpx_map, label, color=color,
-                                coord_in=coord, add_cb=add_cb)
+                                coord_in=coord, cbar=cbar)
 
     def superimpose_survey_outline(self, survey_name, color='red',
-                                   label=None, add_cb=True):
+                                   label=None, cbar=True):
         '''Superimpose an outline of a survey
 
         Parameters
@@ -341,12 +348,12 @@ class SurveyStack(object):
         if isinstance(coord, list):
             for vtx1, coord1 in zip(vtxs[:-1], coord[:-1]):
                 self.superimpose_polygon_outline(vtx1, label, color=color,
-                                                 coord_in=coord1, add_cb=False)
+                                                 coord_in=coord1, cbar=False)
             vtxs = vtxs[-1]
             coord = coord[-1]
 
         self.superimpose_polygon_outline(vtxs, label, color=color,
-                                         coord_in=coord, add_cb=add_cb)
+                                         coord_in=coord, cbar=cbar)
 
     def superimpose_survey_contour(self, survey_name, color='red',
                                    label=None, frac=0.85, **kwds):
@@ -388,7 +395,7 @@ class SurveyStack(object):
                                         **kwds)
 
     def superimpose_hpxmap_contour(self, hpx_map, label, color='red',
-                                   coord_in='C', add_cb=True, frac=0.85,
+                                   coord_in='C', cbar=True, frac=0.85,
                                    smooth_map=None):
         '''Superimpose a contour of an input healpix map.
 
@@ -446,15 +453,15 @@ class SurveyStack(object):
                                     lonra=self.lonra, sub=sub, margins=margins,
                                     return_projected_map=True)
             idx = np.isfinite(map_tmp)
-            if add_cb:
-                add_cb = len(map_tmp[idx]) > 0
+            if cbar:
+                cbar = len(map_tmp[idx]) > 0
             self.fig.delaxes(self.fig.axes[-1])
         else:
             self.mapcontour(hpx_map, [-0.1, level], title='', xsize=1600, coord=coord,
                             cbar=False, fig=self.fig.number, cmap=cm1,
                             notext=True, flip='astro', rot=self.rot)
 
-        if add_cb:
+        if cbar:
     #       Temporary axis with a Healpix map so I can get the correct color
     #       for the colorbar
             cm1 = util.get_color_map(color)
@@ -484,7 +491,7 @@ class SurveyStack(object):
                 left += 1.0 / ncb
 
     def superimpose_polygon_outline(self, vertices, label, color='red',
-                                    coord_in='C', add_cb=True):
+                                    coord_in='C', cbar=True):
         '''Superimpose an outline of a survey given input vertices
 
         Parameters
@@ -527,7 +534,7 @@ class SurveyStack(object):
         H.projplot(linelon, linelat, lonlat=True, markersize=1,
                    color=color)
 
-        if add_cb:
+        if cbar:
 #           Temporary axis with a Healpix map so I can get the correct color
 #           for the colorbar
             cm1 = util.get_color_map(color)
