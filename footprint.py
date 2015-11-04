@@ -149,7 +149,7 @@ class SurveyStack(object):
                                  margins=margins, return_projected_map=True,
                                  **self.kwds)
             idx = np.isfinite(map_tmp)
-            add_cb = len(map_tmp[idx]) > 0
+            cbar = len(map_tmp[idx]) > 0
             self.fig.delaxes(self.fig.axes[-1])
         else:
             self.mapview(hpx_map, title='', coord=coord,
@@ -389,11 +389,11 @@ class SurveyStack(object):
 
         for hpx_map in hpx_maps[:-1]:
             self.superimpose_hpxmap_contour(hpx_map, label, color=color,
-                                            coord_in=coord, add_cb=False,
+                                            coord_in=coord, cbar=False,
                                             **kwds)
 
         self.superimpose_hpxmap_contour(hpx_maps[-1], label, color=color,
-                                        coord_in=coord, add_cb=True, frac=frac,
+                                        coord_in=coord, cbar=True, frac=frac,
                                         **kwds)
 
     def superimpose_hpxmap_contour(self, hpx_map, label, color='red',
@@ -416,7 +416,7 @@ class SurveyStack(object):
         coord_in : 'C', 'E', or 'G', optional
             The coordinate system of the input map. Default = 'C'.
 
-        add_cb : boolean, optional
+        cbar : boolean, optional
             Whether to add a colorbar labeling the input map. Default = true.
 
         frac : float, optional
@@ -511,7 +511,7 @@ class SurveyStack(object):
         coord_in : 'C', 'E', or 'G'
             The coordinate system for the input vertices
 
-        add_cb : boolean
+        cbar : boolean
             Whether to add a colorbar corresponding to this polygon or not
         '''
 
