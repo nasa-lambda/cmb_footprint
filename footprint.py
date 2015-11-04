@@ -453,9 +453,9 @@ class SurveyStack(object):
             margins = (0.01, 0.025, 0.01, 0.03)
             map_tmp = H.cartcontour(hpx_map, 5, title='', xsize=1600, coord=coord,
                                     fig=self.fig.number, cmap=cm1, notext=True,
-                                    flip='astro', rot=self.rot, latra=self.latra,
+                                    flip='astro', latra=self.latra,
                                     lonra=self.lonra, sub=sub, margins=margins,
-                                    return_projected_map=True)
+                                    return_projected_map=True, **self.kwds)
             idx = np.isfinite(map_tmp)
             if cbar:
                 cbar = len(map_tmp[idx]) > 0
@@ -463,7 +463,7 @@ class SurveyStack(object):
         else:
             self.mapcontour(hpx_map, [-0.1, level], title='', xsize=1600, coord=coord,
                             cbar=False, fig=self.fig.number, cmap=cm1,
-                            notext=True, flip='astro', rot=self.rot)
+                            notext=True, flip='astro', **self.kwds)
 
         if cbar:
     #       Temporary axis with a Healpix map so I can get the correct color
@@ -473,14 +473,14 @@ class SurveyStack(object):
             hpx_map = np.ones(12*32**2)
             self.mapview(hpx_map, title='', xsize=1600, coord=coord,
                          cbar=None, fig=self.fig.number, cmap=cm1,
-                         notext=True, flip='astro', rot=self.rot)
+                         notext=True, flip='astro', **self.kwds)
 
 #           First add the new colorbar axis to the figure
             im0 = self.fig.axes[-1].get_images()[0]
             box = self.fig.axes[0].get_position()
             ax_color = pl.axes([len(self.cbs), box.y0-0.1, 0.05, 0.05])
             self.fig.colorbar(im0, cax=ax_color, orientation='horizontal',
-                              label=label, values=[2, 3])
+                              label=label, values=[1, 1])
 
             self.cbs.append(ax_color)
 
@@ -553,7 +553,7 @@ class SurveyStack(object):
             box = self.fig.axes[0].get_position()
             ax_color = pl.axes([len(self.cbs), box.y0-0.1, 0.05, 0.05])
             self.fig.colorbar(im0, cax=ax_color, orientation='horizontal',
-                              label=label, values=[2, 3])
+                              label=label, values=[1, 1])
 
             self.cbs.append(ax_color)
 
