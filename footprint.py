@@ -100,7 +100,9 @@ class SurveyStack(object):
             self.mapview(background, title=title,
                          coord=coord, fig=self.fig.number, cmap=cm.Greys,
                          min=min, max=max, notext=True,
-                         cbar=cbar, flip='astro', unit=unit, **kwds)
+                         cbar=True, flip='astro', unit=unit, **kwds)
+            if not cbar:
+                self.fig.delaxes(self.fig.axes[-1])
 
         H.graticule(dpar=30.0, dmer=30.0, coord='C', verbose=False)
 
@@ -162,7 +164,7 @@ class SurveyStack(object):
             box = self.fig.axes[0].get_position()
             ax_color = pl.axes([len(self.cbs), box.y0-0.1, 0.05, 0.05])
             self.fig.colorbar(im0, cax=ax_color, orientation='horizontal',
-                              label=label, values=[2, 3])
+                              label=label, values=[1, 1])
 
             self.cbs.append(ax_color)
 
