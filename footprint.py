@@ -152,11 +152,11 @@ class SurveyStack(object):
                                  **self.kwds)
             idx = np.isfinite(map_tmp)
             cbar = len(map_tmp[idx]) > 0
-            self.fig.delaxes(self.fig.axes[-1])
         else:
             self.mapview(hpx_map, title='', coord=coord,
-                         cbar=None, fig=self.fig.number, cmap=cm1,
+                         cbar=True, fig=self.fig.number, cmap=cm1,
                          notext=True, flip='astro', **self.kwds)
+        self.fig.delaxes(self.fig.axes[-1])
 
         if cbar:
 #           First add the new colorbar axis to the figure
@@ -451,7 +451,7 @@ class SurveyStack(object):
 #           sure the title is not partially off the figure for a square map
             sub = (1, 1, 1)
             margins = (0.01, 0.025, 0.01, 0.03)
-            map_tmp = H.cartcontour(hpx_map, 5, title='', xsize=1600, coord=coord,
+            map_tmp = H.cartcontour(hpx_map, 5, title='', coord=coord,
                                     fig=self.fig.number, cmap=cm1, notext=True,
                                     flip='astro', latra=self.latra,
                                     lonra=self.lonra, sub=sub, margins=margins,
@@ -459,11 +459,11 @@ class SurveyStack(object):
             idx = np.isfinite(map_tmp)
             if cbar:
                 cbar = len(map_tmp[idx]) > 0
-            self.fig.delaxes(self.fig.axes[-1])
         else:
-            self.mapcontour(hpx_map, [-0.1, level], title='', xsize=1600, coord=coord,
-                            cbar=False, fig=self.fig.number, cmap=cm1,
+            self.mapcontour(hpx_map, [-0.1, level], title='', coord=coord,
+                            cbar=True, fig=self.fig.number, cmap=cm1,
                             notext=True, flip='astro', **self.kwds)
+        self.fig.delaxes(self.fig.axes[-1])
 
         if cbar:
     #       Temporary axis with a Healpix map so I can get the correct color
@@ -471,7 +471,7 @@ class SurveyStack(object):
             cm1 = util.get_color_map(color)
             coord = [coord_in, self.coord_plot]
             hpx_map = np.ones(12*32**2)
-            self.mapview(hpx_map, title='', xsize=1600, coord=coord,
+            self.mapview(hpx_map, title='', coord=coord,
                          cbar=None, fig=self.fig.number, cmap=cm1,
                          notext=True, flip='astro', **self.kwds)
 
@@ -545,8 +545,9 @@ class SurveyStack(object):
             coord = [coord_in, self.coord_plot]
             hpx_map = np.ones(12*32**2)
             self.mapview(hpx_map, title='', coord=coord,
-                         cbar=None, fig=self.fig.number, cmap=cm1,
+                         cbar=True, fig=self.fig.number, cmap=cm1,
                          notext=True, flip='astro', **self.kwds)
+            self.fig.delaxes(self.fig.axes[-1])
 
 #           First add the new colorbar axis to the figure
             im0 = self.fig.axes[-1].get_images()[0]
