@@ -9,9 +9,9 @@ This table lists all the different backgrounds in the configuration file that ca
 | Planck | PLANCK-DUSTPOL | Polarized dust emission map rom Planck commander component separation. sqrt(Q^2 + U^2) |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/Planck_DustPol_Amp_256.fits.gz) |
 | Planck | PLANCK-DUST | Planck commander thermal dust map |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/Planck_Dust_256.fits.gz) |
 
-# CMB Intensity Surveys
+# CMB Temperature Anisotropy Surveys
 
-This next table lists all the surveys associated with CMB intensity experiments
+This next table lists all the surveys associated with CMB temperature anisotropy experiments
 
 | Experiment | ID | Description | File |
 |------------|----|-------------|------|
@@ -76,7 +76,7 @@ This next table lists all the surveys associated with CMB polarization experimen
 | SPIDER | SPIDER-90 | Preliminary hits map for the 90 GHz detectors on SPIDER |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/SPIDER_hits_90ghz.fits.gz) |
 | SPIDER | SPIDER-150 | Preliminary hits map for the 150 GHz detectors on SPIDER |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/SPIDER_hits_150ghz.fits.gz) |
 
-# Large-Scale Structury Surveys
+# Large-Scale Structure Surveys
 
 This next table lists all the surveys associated with LSS surveys
 

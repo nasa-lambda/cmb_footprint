@@ -44,11 +44,11 @@ def gen_markdown():
 
     f.write('\n')
 
-#   Write the CMB intensity table
-    f.write('# CMB Intensity Surveys\n')
+#   Write the CMB temperature anisotropy table
+    f.write('# CMB Temperature Anisotropy Surveys\n')
     f.write('\n')
     f.write('This next table lists all the surveys associated with CMB ')
-    f.write('intensity experiments\n')
+    f.write('temperature anisotropy experiments\n')
     f.write('\n')
     f.write('| Experiment | ID | Description | File |\n')
     f.write('|------------|----|-------------|------|\n')
@@ -85,7 +85,7 @@ def gen_markdown():
     f.write('\n')
 
 #   Write the LSS table
-    f.write('# Large-Scale Structury Surveys\n')
+    f.write('# Large-Scale Structure Surveys\n')
     f.write('\n')
     f.write('This next table lists all the surveys associated with LSS ')
     f.write('surveys\n')
