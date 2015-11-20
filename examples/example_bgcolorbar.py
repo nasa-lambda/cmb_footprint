@@ -15,7 +15,7 @@ from cmb_footprint import footprint
 
 if __name__ == '__main__':
     fp = footprint.SurveyStack('PLANCK-DUSTPOL', fignum=1, projection='mollweide', coord_plot='C', rot=[0,0],
-                               config='../footprint.cfg', cbar=True, log=True, unit=r'$\mu K$')
+                               config='../footprint.cfg', cbar=True, log=True)
     fp.superimpose_survey('SPIDER-90',color='orange', cbar=False)
     fp.superimpose_survey('QUIET-Q',color='green', label='QUIET', cbar=False)
     pl.show()
