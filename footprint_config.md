@@ -85,6 +85,7 @@ This next table lists all the surveys associated with LSS surveys
 | BOSS | BOSS-LSS | A binned map from the LSS DR10 source catalog. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/BOSS_dr10_lss.fits.gz) |
 | BOSS | BOSS-LSS-RANDOM2 | A binned map from the LSS-RANDOM2 DR10 source catalog. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/BOSS_dr10_lss_random2.fits.gz) |
 | BOSS | BOSS-QSO | A binned map from the BOSS QSO DR12 source catalog. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/BOSS_dr12_qso.fits.gz) |
+| DEC | DES-polygon | Planned five-year DES survey footprint in polygon form | |
 | HSC | HSC-FALL1-EQ | Subaru Hyper Suprime-Cam Fall-1 equatorial survey. | |
 | HSC | HSC-FALL2-EQ | Subaru Hyper Suprime-Cam Fall-2 equatorial survey. | |
 | HSC | HSC-SPRING-EQ | Subaru Hyper Suprime-Cam Spring equatorial survey. | |
