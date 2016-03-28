@@ -65,7 +65,7 @@ class SurveyStack(object):
         self.config = ConfigHandler(config, map_path, nside=nside,
                                     download_config=download_config)
 
-#       Could also just call load_survey which will call get_background
+        # Could also just call load_survey which will call get_background
         if isinstance(background, str):
             bgmap, coord_bg, unit2 = self.config.load_survey(background,
                                                              get_unit=True)
@@ -140,9 +140,9 @@ class SurveyStack(object):
         coord = [coord_in, self.coord_plot]
 
         if self.partialmap:
-#           Colorbar is added to this and then deleted to make sure there is
-#           room at the bottom of the map for the labels. Margins are to make
-#           sure the title is not partially off the figure for a square map
+            # Colorbar is added to this and then deleted to make sure there is
+            # room at the bottom of the map for the labels. Margins are to make
+            # sure the title is not partially off the figure for a square map
             sub = (1, 1, 1)
             margins = (0.01, 0.025, 0.01, 0.03)
             map_tmp = H.cartview(hpx_map, title='',
@@ -159,7 +159,7 @@ class SurveyStack(object):
         self.fig.delaxes(self.fig.axes[-1])
 
         if cbar:
-#           First add the new colorbar axis to the figure
+            # First add the new colorbar axis to the figure
             im0 = self.fig.axes[-1].get_images()[0]
             box = self.fig.axes[0].get_position()
             ax_color = pl.axes([len(self.cbs), box.y0-0.1, 0.05, 0.05])
@@ -168,7 +168,7 @@ class SurveyStack(object):
 
             self.cbs.append(ax_color)
 
-#           Readjust the location of every colorbar
+            # Read just the location of every colorbar
             ncb = len(self.cbs)
 
             left = 1.0 / (2.0*ncb) - 0.025
@@ -422,7 +422,8 @@ class SurveyStack(object):
             Whether to add a colorbar labeling the input map. Default = true.
 
         frac : float, optional
-            The contour level will be drawn containing `frac' levels of observation time
+            The contour level will be drawn containing `frac' levels
+            of observation time.
 
         smooth_map : float
             FWHM to smooth the input map (in arcminutes)
@@ -430,8 +431,8 @@ class SurveyStack(object):
 
         idx_nan = (hpx_map == 0)
 
-#       Smoothing makes it more likely that contours don't have holes in them,
-#       but it takes some time to smooth each map
+        # Smoothing makes it more likely that contours don't have holes,
+        # but it takes some time to smooth each map
         if smooth_map:
             hpx_map = H.smoothing(hpx_map, fwhm=np.radians(smooth_map/60.0),
                                   verbose=False)
@@ -446,9 +447,9 @@ class SurveyStack(object):
         level = determine_level(hpx_map, frac)
 
         if self.partialmap:
-#           Colorbar is added to this and then deleted to make sure there is
-#           room at the bottom of the map for the labels. Margins are to make
-#           sure the title is not partially off the figure for a square map
+            # Colorbar is added to this and then deleted to make sure there is
+            # room at the bottom of the map for the labels. Margins are to make
+            # sure the title is not partially off the figure for a square map
             sub = (1, 1, 1)
             margins = (0.01, 0.025, 0.01, 0.03)
             map_tmp = H.cartcontour(hpx_map, 5, title='', coord=coord,
@@ -466,8 +467,8 @@ class SurveyStack(object):
         self.fig.delaxes(self.fig.axes[-1])
 
         if cbar:
-    #       Temporary axis with a Healpix map so I can get the correct color
-    #       for the colorbar
+            # Temporary axis with a Healpix map so I can get the correct color
+            # for the colorbar
             cm1 = util.get_color_map(color)
             coord = [coord_in, self.coord_plot]
             hpx_map = np.ones(12*32**2)
@@ -475,7 +476,7 @@ class SurveyStack(object):
                          cbar=None, fig=self.fig.number, cmap=cm1,
                          notext=True, flip='astro', **self.kwds)
 
-#           First add the new colorbar axis to the figure
+            # First add the new colorbar axis to the figure
             im0 = self.fig.axes[-1].get_images()[0]
             box = self.fig.axes[0].get_position()
             ax_color = pl.axes([len(self.cbs), box.y0-0.1, 0.05, 0.05])
@@ -486,7 +487,7 @@ class SurveyStack(object):
 
             self.fig.delaxes(self.fig.axes[-2])
 
-#           Readjust the location of every colorbar
+            # Readjust the location of every colorbar
             ncb = len(self.cbs)
 
             left = 1.0 / (2.0*ncb) - 0.025
@@ -525,8 +526,8 @@ class SurveyStack(object):
 
         nvertices = len(lons)
 
-#       Loop over all vertices and generate lines between adjacent vertices
-#       in list. This is to ensure the lines are drawn.
+        # Loop over all vertices and generate lines between adjacent vertices
+        # in list. This is to ensure the lines are drawn.
         linelon = np.array([])
         linelat = np.array([])
         for i in range(nvertices-1):
@@ -539,8 +540,8 @@ class SurveyStack(object):
                    color=color)
 
         if cbar:
-#           Temporary axis with a Healpix map so I can get the correct color
-#           for the colorbar
+            # Temporary axis with a Healpix map so I can get the correct color
+            # for the colorbar
             cm1 = util.get_color_map(color)
             coord = [coord_in, self.coord_plot]
             hpx_map = np.ones(12*32**2)
@@ -549,7 +550,7 @@ class SurveyStack(object):
                          notext=True, flip='astro', **self.kwds)
             self.fig.delaxes(self.fig.axes[-1])
 
-#           First add the new colorbar axis to the figure
+            # First add the new colorbar axis to the figure
             im0 = self.fig.axes[-1].get_images()[0]
             box = self.fig.axes[0].get_position()
             ax_color = pl.axes([len(self.cbs), box.y0-0.1, 0.05, 0.05])
@@ -558,16 +559,17 @@ class SurveyStack(object):
 
             self.cbs.append(ax_color)
 
-#           Delete the temporary map
+            # Delete the temporary map
             self.fig.delaxes(self.fig.axes[-2])
 
-#           Readjust the location of every colorbar
+            # Readjust the location of every colorbar
             ncb = len(self.cbs)
 
             left = 1.0 / (2.0*ncb) - 0.025
             for ax_tmp in self.cbs:
                 ax_tmp.set_position([left, box.y0-0.1, 0.05, 0.05])
                 left += 1.0 / ncb
+
 
 def combine_maps(hpx_maps):
     '''Code to combine an array of maps.
@@ -591,6 +593,7 @@ def combine_maps(hpx_maps):
     map_comb /= np.max(map_comb)
 
     return map_comb
+
 
 def determine_level(hpx_map, obs_frac, time=True):
     '''Determine the contour level than contains the obs_frac of the total
@@ -641,4 +644,3 @@ def determine_level(hpx_map, obs_frac, time=True):
             idx1 = idx2
         else:
             idx0 = idx2
-
