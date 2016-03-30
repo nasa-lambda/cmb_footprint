@@ -90,4 +90,12 @@ This next table lists all the surveys associated with LSS surveys
 | HSC | HSC-FALL2-EQ | Subaru Hyper Suprime-Cam Fall-2 equatorial survey. | |
 | HSC | HSC-SPRING-EQ | Subaru Hyper Suprime-Cam Spring equatorial survey. | |
 | HSC | HSC-NORTH | Subaru Hyper Suprime-Cam North survey. | |
+| COSMOS | COSMOS | COSMOS Field | |
+| WiggleZ | WIGGLEZ-0H | WiggleZ 0hr field | |
+| WiggleZ | WIGGLEZ-1H | WiggleZ 1hr field | |
+| WiggleZ | WIGGLEZ-3H | WiggleZ 3hr field | |
+| WiggleZ | WIGGLEZ-9H | WiggleZ 9hr field | |
+| WiggleZ | WIGGLEZ-11H | WiggleZ 11hr field | |
+| WiggleZ | WIGGLEZ-15H | WiggleZ 15hr field | |
+| WiggleZ | WIGGLEZ-22H | WiggleZ 22hr field | |
 
