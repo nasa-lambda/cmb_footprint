@@ -8,6 +8,8 @@ This table lists all the different backgrounds in the configuration file that ca
 |------------|----|-------------|------|
 | Planck | PLANCK-DUSTPOL | Polarized dust emission map rom Planck commander component separation. sqrt(Q^2 + U^2) |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/Planck_DustPol_Amp_256.fits.gz) |
 | Planck | PLANCK-DUST | Planck commander thermal dust map |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/Planck_Dust_256.fits.gz) |
+| Planck | PLANCK-SYNCH | Planck commander synchrotron map' |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/Planck_Synch_256.fits.gz) |
+| Planck | PLANCK-SYNCHPOL | Planck commander synchrotron polarizatioin map. sqrt(Q^2 + U^2)' |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/Planck_SynchPol_Amp_256.fits.gz) |
 
 # CMB Temperature Anisotropy Surveys
 
@@ -15,6 +17,8 @@ This next table lists all the surveys associated with CMB temperature anisotropy
 
 | Experiment | ID | Description | File |
 |------------|----|-------------|------|
+| Planck | PLANCK-UT78 | Planck UT78 Mask |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/Planck_MaskInt_UT78_256.fits.gz) |
+| WMAP | WMAP-TEMP-MASK | Temperature data analysis mask |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/wmap_temperature_kq85_analysis_mask_r9_9yr_v5.fits.gz) |
 | ACT | ACT | All ACT survey regions | |
 | ACT | ACT-EQU | Observations of the EQU region of the ACT experiment at 148 GHz in Seasons 3 and 4. Healpix mapping of the released WCS hitmaps. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/ACT_148_equ_hits_hpx.fits.gz) |
 | ACT | ACT-SOUTH | Observations of the South region of the ACT experiment at 148 GHz in Seasons 2, 3, and 4. Healpix mapping of the released WCS hitmaps. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/ACT_148_south_hits_hpx.fits.gz) |
@@ -46,6 +50,8 @@ This next table lists all the surveys associated with CMB polarization experimen
 
 | Experiment | ID | Description | File |
 |------------|----|-------------|------|
+| Planck | PLANCK-UP78 | Planck UP78 Mask |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/Planck_MaskPol_UP78_256.fits.gz) |
+| WMAP | WMAP-POL-MASK | Polarization data analysis mask |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/wmap_polarization_analysis_mask_r9_9yr_v5.fits.gz) |
 | QUIET | QUIET-Q-CMB-1 | Plot of the CMB-1 field for QUIET's Q band. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/QUIET_Qband_CMB-1_hitmap.fits.gz) |
 | QUIET | QUIET-Q-CMB-2 | Plot of the CMB-2 field for QUIET's Q band. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/QUIET_Qband_CMB-2_hitmap.fits.gz) |
 | QUIET | QUIET-Q-CMB-3 | Plot of the CMB-3 field for QUIET's Q band. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/QUIET_Qband_CMB-3_hitmap.fits.gz) |
