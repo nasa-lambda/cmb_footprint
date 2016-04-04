@@ -6,10 +6,10 @@ This table lists all the different backgrounds in the configuration file that ca
 
 | Experiment | ID | Description | File |
 |------------|----|-------------|------|
-| Planck | PLANCK-DUSTPOL | Polarized dust emission map rom Planck commander component separation. sqrt(Q^2 + U^2) |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/Planck_DustPol_Amp_256.fits.gz) |
+| Planck | PLANCK-DUSTPOL | Polarized dust emission map from Planck commander component separation. sqrt(Q^2 + U^2) |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/Planck_DustPol_Amp_256.fits.gz) |
 | Planck | PLANCK-DUST | Planck commander thermal dust map |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/Planck_Dust_256.fits.gz) |
-| Planck | PLANCK-SYNCH | Planck commander synchrotron map' |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/Planck_Synch_256.fits.gz) |
-| Planck | PLANCK-SYNCHPOL | Planck commander synchrotron polarizatioin map. sqrt(Q^2 + U^2)' |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/Planck_SynchPol_Amp_256.fits.gz) |
+| Planck | PLANCK-SYNCH | Planck commander synchrotron map |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/Planck_Synch_256.fits.gz) |
+| Planck | PLANCK-SYNCHPOL | Planck commander synchrotron polarization map. sqrt(Q^2 + U^2) |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/Planck_SynchPol_Amp_256.fits.gz) |
 
 # CMB Temperature Anisotropy Surveys
 
