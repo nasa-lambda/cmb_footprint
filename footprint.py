@@ -524,6 +524,21 @@ class SurveyStack(object):
         lats = vertices[:, 1]
         lats = np.append(lats, lats[0])
 
+        #Convert coordinate system for the outline to the one used in the
+        #plot
+        r = H.rotator.Rotator(coord=[coord_in, self.coord_plot])
+        lonsp = []
+        latsp = []
+        for lon, lat in zip(lons, lats):
+            theta = np.radians(90 - lat)
+            phi = np.radians(lon)
+            thetap, phip = r(theta, phi)
+            lonsp.append(np.degrees(phip))
+            latsp.append(90 - np.degrees(thetap))
+
+        lons = lonsp
+        lats = latsp
+
         nvertices = len(lons)
 
         # Loop over all vertices and generate lines between adjacent vertices
