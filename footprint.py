@@ -519,14 +519,16 @@ class SurveyStack(object):
         '''
 
         lons = vertices[:, 0]
-        lons = np.append(lons, lons[0])
-
         lats = vertices[:, 1]
-        lats = np.append(lats, lats[0])
+
+        if (lons[-1] - 180.0) > 0.01:
+            lons = np.append(lons, lons[0])
+            lats = np.append(lats, lats[0])
 
         #Convert coordinate system for the outline to the one used in the
         #plot
         r = H.rotator.Rotator(coord=[coord_in, self.coord_plot])
+        r = H.rotator.Rotator(coord=[coord_in, coord_in])
         lonsp = []
         latsp = []
         for lon, lat in zip(lons, lats):
@@ -552,7 +554,7 @@ class SurveyStack(object):
             linelat = np.append(linelat, tmplat)
 
         H.projplot(linelon, linelat, lonlat=True, markersize=1,
-                   color=color)
+                   color=color, coord=coord_in)
 
         if cbar:
             # Temporary axis with a Healpix map so I can get the correct color

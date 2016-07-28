@@ -34,7 +34,8 @@ class ConfigHandler(object):
     '''Class that handles reading the configuration file and generating the
     footprints described by the configuration file'''
 
-    def __init__(self, config_fn, map_path, nside=256, download_config=False):
+    def __init__(self, config_fn, map_path, nside=256, download_config=False,
+                 check=True):
         self.config_fn = config_fn
         self.map_path = map_path
 
@@ -48,7 +49,9 @@ class ConfigHandler(object):
 
         self.config = ConfigParser.ConfigParser()
         self.config.read(config_fn)
-        self.check_all()
+
+        if check:
+            self.check_all()
 
     def get_config(self):
         '''Download the configuration file from LAMBDA to the filename given
@@ -380,6 +383,34 @@ class ConfigHandler(object):
 
         return [hpx_map], coord
 
+    def get_strip(self, survey_name):
+        '''Generates a healpix map for a given survey given a maximum and
+        minimum Dec or latitude.
+
+        Hangler in .cfg file: "strip"
+
+        Parameters
+        ----------
+        survey_name : string
+            Configuration file block specifying survey parameters
+
+        Returns
+        -------
+        hpx_map : array-like
+            The healpix map associated with the survey
+        '''
+
+        lat_range = self.config.get(survey_name, 'dec_range').split(',')
+
+        bottom = SkyCoord('0d', lat_range[0])
+        top = SkyCoord('0d', lat_range[1])
+
+        hpx_map = util.gen_map_strip(bottom.dec.deg, top.dec.deg, self.nside)
+
+        coord = self.config.get(survey_name, 'coord')
+
+        return [hpx_map], coord
+
     def get_combination(self, survey_name):
         '''Generates a healpix map for a given survey that is a
         combination of multiple other surveys in the configuration
@@ -572,8 +603,45 @@ class ConfigHandler(object):
         for component in components:
             vtxs, coord = self.load_survey_outline(component)
 
-            vtxs_list.append(vtxs)
-            coords.append(coord)
+            if isinstance(coord, list):
+                for vtx_tmp, coord_tmp in zip(vtxs, coord):
+                    vtxs_list.append(vtx_tmp)
+                    coords.append(coord_tmp)
+            else:
+                vtxs_list.append(vtxs)
+                coords.append(coord)
+
+        return vtxs_list, coords
+
+    def get_strip_outline(self, survey_name):
+
+        lat_range = self.config.get(survey_name, 'dec_range').split(',')
+
+        bottom = SkyCoord('0d', lat_range[0])
+        top = SkyCoord('0d', lat_range[1])
+
+        vtxs_list = []
+
+        dec0 = bottom.dec.deg
+        dec1 = top.dec.deg
+
+        lons0 = np.linspace(0.0, 360.0, num=361)
+        lons1 = np.linspace(90.0, -270.0, num=361)
+
+        lats0 = dec0*np.ones_like(lons0)
+        lats1 = dec1*np.ones_like(lons1)
+
+        vtxs_list = []
+        coords = []
+
+        vtxs0 = np.transpose([lons0, lats0])
+        vtxs1 = np.transpose([lons1, lats1])
+        coord = self.config.get(survey_name, 'coord')
+
+        vtxs_list.append(vtxs0)
+        coords.append(coord)
+        vtxs_list.append(vtxs1)
+        coords.append(coord)
 
         return vtxs_list, coords
 

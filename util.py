@@ -346,6 +346,7 @@ def gen_map_rectangle(lonra, latra, nside):
 
     Returns
     -------
+    hpx_map: array-like
         A Healpix map with non-zero values inside the disc
     '''
 
@@ -370,6 +371,43 @@ def gen_map_rectangle(lonra, latra, nside):
     idx.shape = (npix,)
 
     hpx_map[idx] = 1.0
+
+    return hpx_map
+
+def gen_map_strip(mindec, maxdec, nside):
+    '''Generates a Healpix map with the only non-zero values in the
+    pixels inside a strip between the input declinations/latitudes
+
+    Parameters
+    ----------
+    mindec : float
+        Minimum declination/latitude in degrees
+
+    maxdec : float
+        Maximum declinaton/latitude in degrees
+
+    nside : int
+        The nside of the output Healpix map
+
+    Returns
+    -------
+    hpx_map: array-like
+        A healpix map with the non-zero values inside the strip
+    '''
+
+    theta1 = np.radians(90.0 - maxdec)
+    theta2 = np.radians(90.0 - mindec)
+
+    if theta2 < theta1:
+        theta1, theta2 = theta2, theta2
+
+    npix = H.nside2npix(nside)
+
+    hpx_map =np.zeros(npix)
+
+    ipix = H.query_strip(nside, theta1, theta2)
+
+    hpx_map[ipix] = 1.0
 
     return hpx_map
 
