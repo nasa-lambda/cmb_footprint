@@ -521,7 +521,7 @@ class SurveyStack(object):
         lons = vertices[:, 0]
         lats = vertices[:, 1]
 
-        if (lons[-1] - 180.0) > 0.01:
+        if np.abs(lons[-1] - 180.0) > 0.01:
             lons = np.append(lons, lons[0])
             lats = np.append(lats, lats[0])
 
