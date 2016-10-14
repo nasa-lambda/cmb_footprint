@@ -104,4 +104,28 @@ This next table lists all the surveys associated with LSS surveys
 | WiggleZ | WIGGLEZ-11H | WiggleZ 11hr field | |
 | WiggleZ | WIGGLEZ-15H | WiggleZ 15hr field | |
 | WiggleZ | WIGGLEZ-22H | WiggleZ 22hr field | |
+| WFIRST | WFIRST-HLS | Wide-Field Infrared Survey Telescope High Latitude Survey from the Science Definition Team report 2015; combination of nine individual rectangular regions | |
+| WFIRST | WFIRST-HLS-vertex | Wide-Field Infrared Survey Telescope High Latitude Survey from the Science Definition Team report 2015; single list of vertices | |
+| WFIRST | WFIRST-HLS-1 | Wide-Field Infrared Survey Telescope High Latitude Survey - rectangular region 1 | |
+| WFIRST | WFIRST-HLS-2 | Wide-Field Infrared Survey Telescope High Latitude Survey - rectangular region 2 | |
+| WFIRST | WFIRST-HLS-3 | Wide-Field Infrared Survey Telescope High Latitude Survey - rectangular region 3 | |
+| WFIRST | WFIRST-HLS-4 | Wide-Field Infrared Survey Telescope High Latitude Survey - rectangular region 4 | |
+| WFIRST | WFIRST-HLS-5 | Wide-Field Infrared Survey Telescope High Latitude Survey - rectangular region 5 | |
+| WFIRST | WFIRST-HLS-6 | Wide-Field Infrared Survey Telescope High Latitude Survey - rectangular region 6 | |
+| WFIRST | WFIRST-HLS-7 | Wide-Field Infrared Survey Telescope High Latitude Survey - rectangular region 7 | |
+| WFIRST | WFIRST-HLS-8 | Wide-Field Infrared Survey Telescope High Latitude Survey - rectangular region 8 | |
+| WFIRST | WFIRST-HLS-9 | Wide-Field Infrared Survey Telescope High Latitude Survey - rectangular region 9 | |
+| KIDS | KIDS-N-1 | Kilo-Degree Survey northern patch 1 | |
+| KIDS | KIDS-N-1a | Kilo-Degree Survey northern patch 1, part of outline on one side of 180 degrees RA | |
+| KIDS | KIDS-N-1b | Kilo-Degree Survey northern patch 1, part of outline on other side of 180 degrees RA | |
+| KIDS | KIDS-N-2 | Kilo-Degree Survey northern patch 2 | |
+| KIDS | KIDS-N | Kilo-Degree Survey north patches | |
+| KIDS | KIDS-S | Kilo-Degree Survey southern patch | |
+| KIDS | KIDS | Kilo-Degree Survey north and south patches | |
+| LSST | LSST | LSST G band nvisits map |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/opsim_nvisits_g.fits.gz) |
+| CFHTLENS | CFHTLENS-W1 | Approximation of the Canada-France-Hawaii Telescope Lensing Survey W1 region | |
+| CFHTLENS | CFHTLENS-W2 | Approximation of the Canada-France-Hawaii Telescope Lensing Survey W2 region | |
+| CFHTLENS | CFHTLENS-W3 | Approximation of the Canada-France-Hawaii Telescope Lensing Survey W3 region | |
+| CFHTLENS | CFHTLENS-W4 | Approximation of the Canada-France-Hawaii Telescope Lensing Survey W4 region | |
+| CFHTLENS | CFHTLENS | The Canada-France-Hawaii Telescope Lensing Survey regions | |
 
