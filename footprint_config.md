@@ -52,6 +52,11 @@ This next table lists all the surveys associated with CMB polarization experimen
 |------------|----|-------------|------|
 | Planck | PLANCK-UP78 | Planck UP78 Mask |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/Planck_MaskPol_UP78_256.fits.gz) |
 | WMAP | WMAP-POL-MASK | Polarization data analysis mask |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/wmap_polarization_analysis_mask_r9_9yr_v5.fits.gz) |
+| ACTPol | ACTPOL | ACTPol regions from 2013-2014 observations | |
+| ACTPol | ACTPOL-D5 | ACTPol Region D5 in 2013-2014 observations |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/ACTPol_148_D5_PA1_S1_1way_hits_hpx.fits.gz) |
+| ACTPol | ACTPOL-D6 | ACTPol Region D6 in 2014-2014 observations |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/ACTPol_148_D6_PA1_S1_1way_hits_hpx.fits.gz) |
+| ACTPol | ACTPOL-D56-PA1 | ACTPol Region D56 PA1 in 2013-2014 observations |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/ACTPol_148_D56_PA1_S2_1way_hits_hpx.fits.gz) |
+| ACTPol | ACTPOL-D56-PA2 | ACTPol Region D56 PA2 in 2013-2014 observations |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/ACTPol_148_D56_PA2_S2_1way_hits_hpx.fits.gz) |
 | QUIET | QUIET-Q-CMB-1 | Plot of the CMB-1 field for QUIET's Q band. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/QUIET_Qband_CMB-1_hitmap.fits.gz) |
 | QUIET | QUIET-Q-CMB-2 | Plot of the CMB-2 field for QUIET's Q band. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/QUIET_Qband_CMB-2_hitmap.fits.gz) |
 | QUIET | QUIET-Q-CMB-3 | Plot of the CMB-3 field for QUIET's Q band. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/QUIET_Qband_CMB-3_hitmap.fits.gz) |
