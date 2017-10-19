@@ -22,7 +22,7 @@ This next table lists all the surveys associated with CMB temperature anisotropy
 | ACT | ACT | All ACT survey regions | |
 | ACT | ACT-EQU | Observations of the EQU region of the ACT experiment at 148 GHz in Seasons 3 and 4. Healpix mapping of the released WCS hitmaps. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/ACT_148_equ_hits_hpx.fits.gz) |
 | ACT | ACT-SOUTH | Observations of the South region of the ACT experiment at 148 GHz in Seasons 2, 3, and 4. Healpix mapping of the released WCS hitmaps. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/ACT_148_south_hits_hpx.fits.gz) |
-| SPT | SPT | The SPT observations from their data release 1. Healpix mapping of their released 150 GHz ZEA hitmap. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/SPT_150_hits_hpx.fits.gz) |
+| SPT | SPT-release1 | The SPT observations from their data release 1. Healpix mapping of their released 150 GHz ZEA hitmap. |  [Link](http://lambda.gsfc.nasa.gov/data/footprint-maps/SPT_150_hits_hpx.fits.gz) |
 | SPT | SPT-SZ-5H30-55 | SPT-SZ patch centered at RA 5h30 and Dec -55 | |
 | SPT | SPT-SZ-23H30-55 | SPT-SZ patch centered at RA 23h30 and Dec -55 | |
 | SPT | SPT-SZ-21H-60 | SPT-SZ patch centered at RA 21h30 and Dec -60 | |
@@ -133,4 +133,7 @@ This next table lists all the surveys associated with LSS surveys
 | CFHTLENS | CFHTLENS-W3 | Approximation of the Canada-France-Hawaii Telescope Lensing Survey W3 region | |
 | CFHTLENS | CFHTLENS-W4 | Approximation of the Canada-France-Hawaii Telescope Lensing Survey W4 region | |
 | CFHTLENS | CFHTLENS | The Canada-France-Hawaii Telescope Lensing Survey regions | |
+| VIPERS | VIPERS-W1 | Approximation of the VIPERS galaxy sample | |
+| VIPERS | VIPERS-W4 | Approximation of the VIPERS galaxy sample | |
+| VIPERS | VIPERS | VIPERS galaxy sample regions | |
 
