@@ -139,6 +139,7 @@ def get_color_map(color):
     else:
         raise ValueError('Bad color input')
 
+    '''
     cdict = {'red':   [(0, rgb[0], rgb[0]),
                        (1, rgb[0], rgb[0])],
              'green': [(0, rgb[1], rgb[1]),
@@ -147,10 +148,25 @@ def get_color_map(color):
                        (1, rgb[2], rgb[2])],
              'alpha': [(0, 0.5, 0.5),
                        (1, 1, 1)]}
+    '''
+
+    cdict = {'red':   [(0, rgb[0], rgb[0]),
+                       (0.001, rgb[0], rgb[0]),
+                       (1, rgb[0], rgb[0])],
+             'green': [(0, rgb[1], rgb[1]),
+                       (0.001, rgb[1], rgb[1]),
+                       (1, rgb[1], rgb[1])],
+             'blue':  [(0, rgb[2], rgb[2]),
+                       (0.001, rgb[2], rgb[2]),
+                       (1, rgb[2], rgb[2])],
+             'alpha': [(0, 0.0, 0.0),
+                       (0, 0.5, 0.5),
+                       (1, 1, 1)]}
 
     colormap1 = LinearSegmentedColormap('FootprintCM', cdict)
     colormap1.set_bad(alpha=0.0)
     colormap1.set_under(alpha=0.0)
+    colormap1.set_over(alpha=0.0)
 
     return colormap1
 

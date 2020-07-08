@@ -137,6 +137,8 @@ class SurveyStack(object):
 
         cm1 = util.get_color_map(color)
 
+        hpx_map[idx_nan] = np.nanmin(hpx_map)-0.001
+
         coord = [coord_in, self.coord_plot]
 
         if self.partialmap:
