@@ -185,18 +185,18 @@ class ConfigHandler(object):
         coord = self.config.get(survey_name, 'coord')
 
         if get_unit:
-            hpx_map, header = H.read_map(fns[0], verbose=False, h=True)
+            hpx_map, header = H.read_map(fns[0], h=True)
             header = dict(header)
             try:
                 unit = header['TUNIT1']
             except KeyError:
                 unit = None
         else:
-            hpx_map = H.read_map(fns[0], verbose=False)
+            hpx_map = H.read_map(fns[0])
 
         nside = H.npix2nside(len(hpx_map))
         for fn_tmp in fns[1:]:
-            tmp_map = H.read_map(fn_tmp, verbose=False)
+            tmp_map = H.read_map(fn_tmp)
             hpx_map += H.ud_grade(tmp_map, nside)
 
         if get_unit:
@@ -476,7 +476,7 @@ class ConfigHandler(object):
 
             lonlat_val = radec_val.split(',')
             lonlat_val = [tmp.strip() for tmp in lonlat_val]
-            isneg = lonlat_val[0][0] is '-'
+            isneg = lonlat_val[0][0] == '-'
             lonlat_val = SkyCoord(lonlat_val[0], lonlat_val[1])
 
             tmp = lonlat_val.ra.deg

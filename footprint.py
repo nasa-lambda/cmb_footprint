@@ -158,6 +158,8 @@ class SurveyStack(object):
             self.mapview(hpx_map, title='', coord=coord,
                          cbar=True, fig=self.fig.number, cmap=cm1,
                          notext=True, flip='astro', **self.kwds)
+
+        #Last axis is colorbar
         self.fig.delaxes(self.fig.axes[-1])
 
         if cbar:
@@ -165,9 +167,10 @@ class SurveyStack(object):
             im0 = self.fig.axes[-1].get_images()[0]
             box = self.fig.axes[0].get_position()
             ax_color = pl.axes([len(self.cbs), box.y0-0.1, 0.05, 0.05])
+            #self.fig.colorbar(im0, cax=ax_color, orientation='horizontal',
+            #                  label=label, values=[1, 1])
             self.fig.colorbar(im0, cax=ax_color, orientation='horizontal',
-                              label=label, values=[1, 1])
-
+                              label=label, ticks=[])
             self.cbs.append(ax_color)
 
             # Read just the location of every colorbar
@@ -482,8 +485,10 @@ class SurveyStack(object):
             im0 = self.fig.axes[-1].get_images()[0]
             box = self.fig.axes[0].get_position()
             ax_color = pl.axes([len(self.cbs), box.y0-0.1, 0.05, 0.05])
+            #self.fig.colorbar(im0, cax=ax_color, orientation='horizontal',
+            #                  label=label, values=[1, 1])
             self.fig.colorbar(im0, cax=ax_color, orientation='horizontal',
-                              label=label, values=[1, 1])
+                              label=label, ticks=[])
 
             self.cbs.append(ax_color)
 
@@ -567,14 +572,18 @@ class SurveyStack(object):
             self.mapview(hpx_map, title='', coord=coord,
                          cbar=True, fig=self.fig.number, cmap=cm1,
                          notext=True, flip='astro', **self.kwds)
+
+            #Last axes is colorbar that we want to delete
             self.fig.delaxes(self.fig.axes[-1])
 
             # First add the new colorbar axis to the figure
             im0 = self.fig.axes[-1].get_images()[0]
             box = self.fig.axes[0].get_position()
             ax_color = pl.axes([len(self.cbs), box.y0-0.1, 0.05, 0.05])
+            #self.fig.colorbar(im0, cax=ax_color, orientation='horizontal',
+            #                  label=label, values=[1, 1])
             self.fig.colorbar(im0, cax=ax_color, orientation='horizontal',
-                              label=label, values=[1, 1])
+                              label=label, ticks=[])
 
             self.cbs.append(ax_color)
 

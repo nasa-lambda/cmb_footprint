@@ -1,5 +1,8 @@
 *.fits
 *.gz
 *.swp
+*.swo
+*.swn
 *.pyc
 *.png
+.DS_STORE

@@ -139,17 +139,6 @@ def get_color_map(color):
     else:
         raise ValueError('Bad color input')
 
-    '''
-    cdict = {'red':   [(0, rgb[0], rgb[0]),
-                       (1, rgb[0], rgb[0])],
-             'green': [(0, rgb[1], rgb[1]),
-                       (1, rgb[1], rgb[1])],
-             'blue':  [(0, rgb[2], rgb[2]),
-                       (1, rgb[2], rgb[2])],
-             'alpha': [(0, 0.5, 0.5),
-                       (1, 1, 1)]}
-    '''
-
     cdict = {'red':   [(0, rgb[0], rgb[0]),
                        (1, rgb[0], rgb[0])],
              'green': [(0, rgb[1], rgb[1]),
