@@ -10,6 +10,11 @@ Required python libraries:
 * Astropy (coordinate units, WCS)
 * Scipy
 
+To install the project requirements, run the following command:
+```bash
+pip install -r requirements.txt
+```
+
 The code runs in both Python 2 (checked on 2.7.10) and Python 3 (checked on
 3.4.3). Astropy supports a range of coordinate specifications in the
 configuration file.
